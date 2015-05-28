@@ -19,6 +19,7 @@ use Symfony\Component\HttpKernel\Log\DebugLoggerInterface;
  * LogDataCollector.
  *
  * @author Fabien Potencier <fabien@symfony.com>
+ * @deprecated since 2.8, to be removed in 3.0. Use Symfony\Component\Profiler\DataCollector\LoggerDataCollector instead.
  */
 class LoggerDataCollector extends DataCollector implements LateDataCollectorInterface
 {

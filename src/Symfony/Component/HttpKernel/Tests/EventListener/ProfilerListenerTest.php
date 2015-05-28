@@ -31,7 +31,7 @@ class ProfilerListenerTest extends \PHPUnit_Framework_TestCase
     {
         $this->iniSet('error_reporting', -1 & ~E_USER_DEPRECATED);
 
-        $profile = $this->getMockBuilder('Symfony\Component\HttpKernel\Profiler\Profile')
+        $profile = $this->getMockBuilder('Symfony\Component\Profiler\Profile')
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -63,7 +63,7 @@ class ProfilerListenerTest extends \PHPUnit_Framework_TestCase
      */
     public function testKernelTerminate()
     {
-        $profile = $this->getMockBuilder('Symfony\Component\HttpKernel\Profiler\Profile')
+        $profile = $this->getMockBuilder('Symfony\Component\Profiler\Profile')
             ->disableOriginalConstructor()
             ->getMock();
 
