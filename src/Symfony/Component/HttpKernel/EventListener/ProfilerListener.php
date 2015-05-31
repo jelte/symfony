@@ -25,7 +25,7 @@ use Symfony\Component\Profiler\EventListener\HttpProfilerListener;
  *
  * @author Fabien Potencier <fabien@symfony.com>
  *
- * @deprecated since 2.8, to be removed in 3.0. Use Symfony\Component\Profiler\EventListener\HttpProfileListener instead.
+ * @deprecated since 2.8, to be removed in 3.0. Use Symfony\Component\Profiler\EventListener\HttpProfilerListener instead.
  */
 class ProfilerListener extends HttpProfilerListener
 {
