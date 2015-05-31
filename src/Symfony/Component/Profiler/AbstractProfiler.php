@@ -25,7 +25,6 @@ use Symfony\Component\Profiler\Storage\ProfilerStorageInterface;
  */
 abstract class AbstractProfiler
 {
-
     use DataCollectorTrait;
 
     /**
@@ -167,7 +166,7 @@ abstract class AbstractProfiler
     }
 
     /**
-     * Collects data
+     * Collects data.
      *
      * @return Profile|null A Profile instance or null if the profiler is disabled
      */

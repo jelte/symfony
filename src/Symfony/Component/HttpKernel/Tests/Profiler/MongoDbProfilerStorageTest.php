@@ -11,12 +11,9 @@
 
 namespace Symfony\Component\HttpKernel\Tests\Profiler;
 
-
 use Symfony\Component\Profiler\DataCollector\RuntimeDataCollectorInterface;
 use Symfony\Component\Profiler\Profile;
 use Symfony\Component\Profiler\DataCollector\AbstractDataCollector;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Profiler\ProfileData\AbstractProfileData;
 use Symfony\Component\Profiler\Storage\MongoDbProfilerStorage;
 

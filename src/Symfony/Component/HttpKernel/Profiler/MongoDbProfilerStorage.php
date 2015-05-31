@@ -14,7 +14,7 @@ namespace Symfony\Component\HttpKernel\Profiler;
 use Symfony\Component\Profiler\Storage\MongoDbProfilerStorage as BaseMongoDbProfilerStorage;
 
 /**
- * Class MongoDbProfilerStorage
+ * Class MongoDbProfilerStorage.
  *
  * @deprecated since 2.8, to be removed in 3.0. Use Symfony\Component\Profiler\Storage\MongoDbProfilerStorage instead.
  */

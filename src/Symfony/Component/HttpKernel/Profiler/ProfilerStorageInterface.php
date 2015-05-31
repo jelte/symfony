@@ -22,5 +22,4 @@ use Symfony\Component\Profiler\Storage\ProfilerStorageInterface as BaseProfilerS
  */
 interface ProfilerStorageInterface extends BaseProfilerStorageInterface
 {
-
 }

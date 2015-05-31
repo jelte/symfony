@@ -91,6 +91,7 @@ class Profiler extends HttpProfiler
                 $collector->lateCollect();
             }
         }
+
         return parent::save($profile);
     }
 
@@ -145,7 +146,7 @@ class Profiler extends HttpProfiler
         // Prevent the deprecation notice to be triggered all the time.
         // The onKernelRequest() method fires some logic only when the
         // RequestStack instance is not provided as a dependency.
-        trigger_error('The ' . __METHOD__ . ' method should not be used till version 3.0 as it does not support 2.x DataCollectors. Use the method collect instead.', E_USER_DEPRECATED);
+        trigger_error('The '.__METHOD__.' method should not be used till version 3.0 as it does not support 2.x DataCollectors. Use the method collect instead.', E_USER_DEPRECATED);
 
         return parent::profile();
     }
