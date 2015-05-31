@@ -11,93 +11,47 @@
 
 namespace Symfony\Component\HttpKernel\Profiler;
 
+use Symfony\Component\Profiler\Storage\MemcachedProfilerStorage as BaseMemcachedProfilerStorage;
+
 /**
  * Memcached Profiler Storage.
  *
  * @author Andrej Hudec <pulzarraider@gmail.com>
+ *
+ * @deprecated since 2.8, to be removed in 3.0. Use Symfony\Component\Profiler\Storage\MemcachedProfilerStorage instead.
  */
-class MemcachedProfilerStorage extends BaseMemcacheProfilerStorage
+class MemcachedProfilerStorage extends BaseMemcachedProfilerStorage
 {
-    /**
-     * @var \Memcached
-     */
-    private $memcached;
-
-    /**
-     * Internal convenience method that returns the instance of the Memcached.
-     *
-     * @return \Memcached
-     *
-     * @throws \RuntimeException
-     */
-    protected function getMemcached()
+    protected function createProfileFromData($token, $data, $parent = null)
     {
-        if (null === $this->memcached) {
-            if (!preg_match('#^memcached://(?(?=\[.*\])\[(.*)\]|(.*)):(.*)$#', $this->dsn, $matches)) {
-                throw new \RuntimeException(sprintf('Please check your configuration. You are trying to use Memcached with an invalid dsn "%s". The expected format is "memcached://[host]:port".', $this->dsn));
+        $profile = new Profile($token);
+        $profile->setIp($data['ip']);
+        $profile->setMethod($data['method']);
+        $profile->setUrl($data['url']);
+        $profile->setTime($data['time']);
+        $profile->setCollectors($data['collectors']);
+        $profile->setCollectors($data['data']);
+
+        if (!$parent && $data['parent']) {
+            $parent = $this->read($data['parent']);
+        }
+
+        if ($parent) {
+            $profile->setParent($parent);
+        }
+
+        foreach ($data['children'] as $token) {
+            if (!$token) {
+                continue;
             }
 
-            $host = $matches[1] ?: $matches[2];
-            $port = $matches[3];
+            if (!$childProfileData = $this->getValue($this->getItemName($token))) {
+                continue;
+            }
 
-            $memcached = new \Memcached();
-
-            // disable compression to allow appending
-            $memcached->setOption(\Memcached::OPT_COMPRESSION, false);
-
-            $memcached->addServer($host, $port);
-
-            $this->memcached = $memcached;
+            $profile->addChild($this->createProfileFromData($token, $childProfileData, $profile));
         }
 
-        return $this->memcached;
-    }
-
-    /**
-     * Set instance of the Memcached.
-     *
-     * @param \Memcached $memcached
-     */
-    public function setMemcached($memcached)
-    {
-        $this->memcached = $memcached;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function getValue($key)
-    {
-        return $this->getMemcached()->get($key);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function setValue($key, $value, $expiration = 0)
-    {
-        return $this->getMemcached()->set($key, $value, time() + $expiration);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function delete($key)
-    {
-        return $this->getMemcached()->delete($key);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function appendValue($key, $value, $expiration = 0)
-    {
-        $memcached = $this->getMemcached();
-
-        if (!$result = $memcached->append($key, $value)) {
-            return $memcached->set($key, $value, $expiration);
-        }
-
-        return $result;
+        return $profile;
     }
 }
