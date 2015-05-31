@@ -16,7 +16,6 @@ use Symfony\Component\Profiler\DataCollector\Util\ValueExporter;
 
 /**
  * Class AbstractProfileData
- * @package Symfony\Component\Profiler\ProfileData
  *
  * @author Jelte Steijaert <jelte@khepri.be>
  */

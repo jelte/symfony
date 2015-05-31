@@ -15,7 +15,6 @@ use Symfony\Component\Debug\Exception\FlattenException;
 
 /**
  * Class ExceptionData
- * @package Symfony\Component\Profiler\ProfileData
  *
  * @author Jelte Steijaert <jelte@khepri.be>
  */

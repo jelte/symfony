@@ -25,7 +25,6 @@ use Symfony\Component\Profiler\ProfileData\DumpData;
 
 /**
  * Class DumpDataCollector
- * @package Symfony\Component\Profiler\DataCollector
  *
  * @author Nicolas Grekas <p@tchwork.com>
  * @author Jelte Steijaert <jelte@khepri.be>

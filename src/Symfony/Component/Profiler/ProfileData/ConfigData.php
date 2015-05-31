@@ -13,7 +13,6 @@ namespace Symfony\Component\Profiler\ProfileData;
 
 /**
  * Class ConfigData
- * @package Symfony\Component\Profiler\ProfileData
  *
  * @author Jelte Steijaert <jelte@khepri.be>
  */

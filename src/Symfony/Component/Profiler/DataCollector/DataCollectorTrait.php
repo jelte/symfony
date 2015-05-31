@@ -13,7 +13,6 @@ namespace Symfony\Component\Profiler\DataCollector;
 
 /**
  * Class DataCollectorTrait
- * @package Symfony\Component\Profiler\DataCollector
  */
 trait DataCollectorTrait
 {

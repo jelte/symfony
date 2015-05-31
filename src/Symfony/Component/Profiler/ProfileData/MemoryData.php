@@ -13,7 +13,6 @@ namespace Symfony\Component\Profiler\ProfileData;
 
 /**
  * Class MemoryData
- * @package Symfony\Component\Profiler\ProfileData
  *
  * @author Jelte Steijaert <jelte@khepri.be>
  */

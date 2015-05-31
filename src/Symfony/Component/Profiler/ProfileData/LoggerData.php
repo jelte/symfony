@@ -15,7 +15,6 @@ use Symfony\Component\HttpKernel\Log\DebugLoggerInterface;
 
 /**
  * Class LoggerData
- * @package Symfony\Component\Profiler\ProfileData
  *
  * @author Jelte Steijaert <jelte@khepri.be>
  */

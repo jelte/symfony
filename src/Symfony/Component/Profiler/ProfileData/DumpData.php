@@ -15,7 +15,6 @@ use Symfony\Component\VarDumper\Dumper\HtmlDumper;
 
 /**
  * Class DumpData
- * @package Symfony\Component\Profiler\ProfileData
  *
  * @author Jelte Steijaert <jelte@khepri.be>
  */

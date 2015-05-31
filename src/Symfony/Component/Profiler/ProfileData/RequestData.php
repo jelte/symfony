@@ -19,7 +19,6 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
 /**
  * Class RequestData
- * @package Symfony\Component\Profiler\ProfileData
  *
  * @author Jelte Steijaert <jelte@khepri.be>
  */

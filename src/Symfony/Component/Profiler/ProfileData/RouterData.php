@@ -16,7 +16,6 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Class RouterData
- * @package Symfony\Component\Profiler\ProfileData
  *
  * @author Jelte Steijaert <jelte@khepri.be>
  */

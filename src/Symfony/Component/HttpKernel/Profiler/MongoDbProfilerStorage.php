@@ -15,7 +15,6 @@ use Symfony\Component\Profiler\Storage\MongoDbProfilerStorage as BaseMongoDbProf
 
 /**
  * Class MongoDbProfilerStorage
- * @package Symfony\Component\HttpKernel\Profiler
  *
  * @deprecated since 2.8, to be removed in 3.0. Use Symfony\Component\Profiler\Storage\MongoDbProfilerStorage instead.
  */

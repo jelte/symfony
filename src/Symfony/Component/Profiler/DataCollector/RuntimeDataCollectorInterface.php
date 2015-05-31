@@ -15,7 +15,6 @@ namespace Symfony\Component\Profiler\DataCollector;
 
 /**
  * Interface RuntimeDataCollectorInterface
- * @package Symfony\Component\Profiler\DataCollector
  *
  * @author Jelte Steijaert <jelte@khepri.be>
  */
