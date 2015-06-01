@@ -52,6 +52,19 @@ class HttpProfilerTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(array('foo' => 'bar'), $profile->getProfileData('request')->getRequestQuery()->all());
     }
 
+    public function testCollectWithoutRequest()
+    {
+        $requestStack = new RequestStack();
+        $collector = new RequestDataCollector($requestStack);
+
+        $profiler = new HttpProfiler($requestStack, $this->storage);
+        $profiler->add($collector);
+
+        $profile = $profiler->profile();
+
+        $this->assertNULL($profile);
+    }
+
     public function testFindWorksWithDates()
     {
         $profiler = new HttpProfiler(new RequestStack(), $this->storage);
@@ -71,6 +84,19 @@ class HttpProfilerTest extends \PHPUnit_Framework_TestCase
         $profiler = new HttpProfiler(new RequestStack(), $this->storage);
 
         $this->assertCount(0, $profiler->find(null, null, null, null, 'some string', ''));
+    }
+
+    public function testLoadFromResponse()
+    {
+
+        $response = new Response('', 204);
+
+        $profiler = new HttpProfiler(new RequestStack(), $this->storage);
+
+        $this->assertFalse($profiler->loadFromResponse($response));
+        $response->headers->set('X-Debug-Token','tokens');
+        $this->assertNULL($profiler->loadFromResponse($response));
+
     }
 
     protected function setUp()
