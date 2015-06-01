@@ -16,7 +16,7 @@
         }
     ],
     "require": {
-        "php": ">=5.5.9"
+        "php": ">=5.3.9"
     },
     "require-dev": {
         "symfony/http-kernel": "~2.7",
@@ -24,16 +24,13 @@
         "symfony/var-dumper": "~2.7",
         "symfony/config": "~2.0"
     },
-    "suggest": {
-    },
     "autoload": {
         "psr-4": { "Symfony\\Component\\Profiler\\": "" }
     },
-    "target-dir": "Symfony/Component/Profiler",
     "minimum-stability": "dev",
     "extra": {
         "branch-alias": {
-            "dev-master": "2.7-dev"
+            "dev-master": "2.8-dev"
         }
     }
 }
