@@ -17,6 +17,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
+use Symfony\Component\Stopwatch\Stopwatch;
 
 class TimeDataCollectorTest extends \PHPUnit_Framework_TestCase
 {
@@ -24,6 +25,7 @@ class TimeDataCollectorTest extends \PHPUnit_Framework_TestCase
     {
         $requestStack = new RequestStack();
         $c = new TimeDataCollector($requestStack);
+        $this->assertSame('time', $c->getName());
 
         $request = new Request();
         $requestStack->push($request);
@@ -75,5 +77,21 @@ class TimeDataCollectorTest extends \PHPUnit_Framework_TestCase
 
         $data = $c->lateCollect();
         $this->assertEquals(123456000, $data->getStartTime());
+    }
+
+    public function testCollectWithStopwatch()
+    {
+        $requestStack = new RequestStack();
+        $stopwatch = new Stopwatch();
+        $c = new TimeDataCollector($requestStack, null, $stopwatch);
+        $this->assertSame('time', $c->getName());
+
+        $request = new Request();
+        $requestStack->push($request);
+
+        $c->setToken('Mock-Test-Token');
+
+        $data = $c->lateCollect();
+        $this->assertInternalType('array', $data->getEvents());
     }
 }

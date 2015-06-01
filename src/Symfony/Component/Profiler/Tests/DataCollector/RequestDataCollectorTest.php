@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 use Symfony\Component\HttpKernel\HttpKernel;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
+use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Profiler\DataCollector\RequestDataCollector;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
 use Symfony\Component\HttpFoundation\Request;
@@ -28,6 +29,7 @@ class RequestDataCollectorTest extends \PHPUnit_Framework_TestCase
     {
         $requestStack = new RequestStack();
         $c = new RequestDataCollector($requestStack);
+
         $requestStack->push($this->createRequest());
 
         $c->onKernelResponse(
@@ -58,6 +60,23 @@ class RequestDataCollectorTest extends \PHPUnit_Framework_TestCase
         $this->assertSame('OK', $data->getStatusText());
         $this->assertSame(200, $data->getStatusCode());
         $this->assertSame('application/json', $data->getContentType());
+    }
+
+    public function testCollectNoResponseForRequest()
+    {
+        $requestStack = new RequestStack();
+        $c = new RequestDataCollector($requestStack);
+
+        $requestStack->push($this->createRequest());
+
+        $this->assertNull($c->collect());
+    }
+
+    public function testSubscribedEvents()
+    {
+        $events = RequestDataCollector::getSubscribedEvents();
+        $this->assertArrayHasKey(KernelEvents::CONTROLLER, $events);
+        $this->assertArrayHasKey(KernelEvents::RESPONSE, $events);
     }
 
     /**

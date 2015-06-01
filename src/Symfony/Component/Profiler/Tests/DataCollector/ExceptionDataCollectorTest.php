@@ -25,6 +25,8 @@ class ExceptionDataCollectorTest extends \PHPUnit_Framework_TestCase
         $flattened = FlattenException::create($e);
         $trace = $flattened->getTrace();
 
+        $this->assertEquals('exception', $c->getName());
+
         $data = $c->collect();
         $this->assertNull($data);
 

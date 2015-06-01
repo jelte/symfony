@@ -21,6 +21,8 @@ class MemoryDataCollectorTest extends \PHPUnit_Framework_TestCase
     public function testCollect()
     {
         $collector = new MemoryDataCollector();
+
+        $this->assertEquals('memory', $collector->getName());
         $data = $collector->lateCollect();
 
         $this->assertInstanceOf('Symfony\Component\Profiler\ProfileData\MemoryData', $data);

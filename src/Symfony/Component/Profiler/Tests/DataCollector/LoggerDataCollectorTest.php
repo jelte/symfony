@@ -25,6 +25,7 @@ class LoggerDataCollectorTest extends \PHPUnit_Framework_TestCase
         $logger->expects($this->exactly(2))->method('getLogs')->will($this->returnValue($logs));
 
         $c = new LoggerDataCollector($logger);
+        $this->assertEquals('logger', $c->getName());
         $data = $c->lateCollect();
 
         $this->assertSame('logger', $data->getName());
@@ -36,6 +37,12 @@ class LoggerDataCollectorTest extends \PHPUnit_Framework_TestCase
         if (isset($expectedPriorities)) {
             $this->assertSame($expectedPriorities, $data->getPriorities());
         }
+    }
+
+    public function testCollectWithoutLogger()
+    {
+        $c = new LoggerDataCollector();
+        $this->assertNull($c->lateCollect());
     }
 
     public function getCollectTestData()

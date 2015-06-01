@@ -77,8 +77,8 @@ class ConfigDataCollector extends AbstractDataCollector implements RuntimeDataCo
             'sapi_name' => php_sapi_name(),
         );
 
-        if (isset($kernel)) {
-            foreach ($kernel->getBundles() as $name => $bundle) {
+        if (isset($this->kernel)) {
+            foreach ($this->kernel->getBundles() as $name => $bundle) {
                 $data['bundles'][$name] = $bundle->getPath();
             }
 
@@ -108,13 +108,13 @@ class ConfigDataCollector extends AbstractDataCollector implements RuntimeDataCo
         $eol = \DateTime::createFromFormat('m/Y', Kernel::END_OF_LIFE)->modify('last day of this month');
 
         if ($now > $eol) {
-            $versionState = 'eol';
+            $versionState = 'eol'; //@codeCoverageIgnore
         } elseif ($now > $eom) {
-            $versionState = 'eom';
+            $versionState = 'eom'; //@codeCoverageIgnore
         } elseif ('' !== Kernel::EXTRA_VERSION) {
-            $versionState = 'dev';
+            $versionState = strtolower(Kernel::EXTRA_VERSION);  //@codeCoverageIgnore
         } else {
-            $versionState = 'stable';
+            $versionState = 'stable'; //@codeCoverageIgnore
         }
 
         return $versionState;

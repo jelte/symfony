@@ -11,6 +11,8 @@
 
 namespace Symfony\Component\Profiler\Tests\DataCollector;
 
+use Symfony\Component\HttpKernel\Bundle\Bundle;
+use Symfony\Component\HttpKernel\Bundle\BundleInterface;
 use Symfony\Component\Profiler\DataCollector\ConfigDataCollector;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Kernel;
@@ -35,6 +37,11 @@ class ConfigDataCollectorTest extends \PHPUnit_Framework_TestCase
         $this->assertSame('testkernel', $profileData->getAppName());
         $this->assertSame(PHP_VERSION, $profileData->getPhpVersion());
         $this->assertSame(Kernel::VERSION, $profileData->getSymfonyVersion());
+        $this->assertSame($this->currentSymfonyState(), $profileData->getSymfonyState());
+        if ( '' !== Kernel::EXTRA_VERSION ) {
+            $this->assertSame(strtolower(Kernel::EXTRA_VERSION), $profileData->getSymfonyState());
+        }
+
         $this->assertNull($profileData->getToken());
 
         // if else clause because we don't know it
@@ -58,6 +65,27 @@ class ConfigDataCollectorTest extends \PHPUnit_Framework_TestCase
         } else {
             $this->assertFalse($profileData->hasAccelerator());
         }
+
+        $this->assertEquals('config', $c->getName());
+    }
+
+    private function currentSymfonyState()
+    {
+        $now = new \DateTime();
+        $eom = \DateTime::createFromFormat('m/Y', Kernel::END_OF_MAINTENANCE)->modify('last day of this month');
+        $eol = \DateTime::createFromFormat('m/Y', Kernel::END_OF_LIFE)->modify('last day of this month');
+
+        if ($now > $eol) {
+            $versionState = 'eol';
+        } elseif ($now > $eom) {
+            $versionState = 'eom';
+        } elseif ('' !== Kernel::EXTRA_VERSION) {
+            $versionState = strtolower(Kernel::EXTRA_VERSION);
+        } else {
+            $versionState = 'stable';
+        }
+
+        return $versionState;
     }
 }
 
@@ -74,10 +102,17 @@ class KernelForTest extends Kernel
 
     public function getBundles()
     {
-        return array();
+        return array(
+            new BundleForTest()
+        );
     }
 
     public function registerContainerConfiguration(LoaderInterface $loader)
     {
     }
+}
+
+class BundleForTest extends Bundle
+{
+
 }
