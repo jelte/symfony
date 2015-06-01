@@ -28,7 +28,7 @@ abstract class AbstractProfiler
     /**
      * @var DataCollectorInterface[]
      */
-    private $collectors = [];
+    private $collectors = array();
 
     /**
      * @var ProfilerStorageInterface
