@@ -11,8 +11,7 @@
 
 namespace Symfony\Component\Profiler\ProfileData;
 
-
-use Symfony\Component\Profiler\DataCollector\Util\ValueExporter;
+use Symfony\Component\Profiler\ProfileData\Util\ValueExporter;
 
 /**
  * Class AbstractProfileData

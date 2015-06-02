@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Profiler\DataCollector\Util;
+namespace Symfony\Component\Profiler\ProfileData\Util;
 
 /**
  * @author Bernhard Schussek <bschussek@gmail.com>

@@ -9,9 +9,9 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Profiler\Tests\DataCollector\Util;
+namespace Symfony\Component\Profiler\Tests\ProfileData\Util;
 
-use Symfony\Component\Profiler\DataCollector\Util\ValueExporter;
+use Symfony\Component\Profiler\ProfileData\Util\ValueExporter;
 
 class ValueExporterTest extends \PHPUnit_Framework_TestCase
 {
