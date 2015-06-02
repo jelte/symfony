@@ -68,6 +68,9 @@ class HttpProfiler extends AbstractProfiler
     protected function createProfile()
     {
         $request = $this->requestStack->getCurrentRequest();
+        if ( !isset($this->responses[$request]) ) {
+            return;
+        }
         $response = $this->responses[$request];
 
         $profile = new Profile(substr(hash('sha256', uniqid(mt_rand(), true)), 0, 6));

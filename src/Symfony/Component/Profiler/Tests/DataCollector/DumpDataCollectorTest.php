@@ -11,6 +11,8 @@
 
 namespace Symfony\Component\Profiler\Tests\DataCollector;
 
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Profiler\DataCollector\DumpDataCollector;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -18,6 +20,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\VarDumper\Cloner\Data;
+use Symfony\Component\Profiler\ProfileData\DumpData;
 
 /**
  * @author Nicolas Grekas <p@tchwork.com>
@@ -69,9 +72,40 @@ class DumpDataCollectorTest extends \PHPUnit_Framework_TestCase
         $requestStack = new RequestStack();
         $requestStack->push($request);
         $collector = new DumpDataCollector($requestStack);
+        $collector->setToken('DumpDataCollectorTest');
+        $response = new Response();
+        $request->setRequestFormat('html');
+        $response->setContent('<html><body></body></html>');
         $collector->onKernelResponse(
             new FilterResponseEvent(
-                $this->getKernel(), $request, HttpKernelInterface::MASTER_REQUEST, new Response()
+                $this->getKernel(), $request, HttpKernelInterface::MASTER_REQUEST, $response
+            )
+        );
+        $collector->dump($data);
+        $line = __LINE__ - 1;
+
+        /** @var DumpData $data */
+        $data = $collector->collect();
+        $this->assertInstanceof('Symfony\Component\Profiler\ProfileData\DumpData', $data);
+        $this->assertEquals(1, $data->getDumpsCount());
+        $dumps = $data->getDumps('html');
+        $this->assertCount(1, $dumps);
+        $this->assertEquals($line, $dumps[0]['line']);
+        $this->assertEquals(__FILE__, $dumps[0]['file']);
+    }
+
+    public function testCollectRedirectResponse()
+    {
+        $data = new Data(array(array(123)));
+
+        $request = new Request();
+        $requestStack = new RequestStack();
+        $requestStack->push($request);
+        $collector = new DumpDataCollector($requestStack);
+        $collector->setToken('DumpDataCollectorTest');
+        $collector->onKernelResponse(
+            new FilterResponseEvent(
+                $this->getKernel(), $request, HttpKernelInterface::MASTER_REQUEST, new RedirectResponse('dummy')
             )
         );
         $collector->dump($data);
@@ -88,6 +122,15 @@ class DumpDataCollectorTest extends \PHPUnit_Framework_TestCase
         }
         $this->assertSame(1, $collector->getDumpsCount());
         $collector->serialize();
+    }
+
+    public function testCollectWithoutRequestOrResponse()
+    {
+        $requestStack = new RequestStack();
+        $collector = new DumpDataCollector($requestStack);
+        $this->assertNULL($collector->collect());
+        $requestStack->push(new Request());
+        $this->assertNULL($collector->collect());
     }
 
     public function testCollectHtml()
@@ -153,6 +196,23 @@ EOTXT;
         } else {
             $this->assertSame("\"DumpDataCollectorTest.php on line {$line}:\"\n456\n", ob_get_clean());
         }
+    }
+
+    /**
+     * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessage Invalid dump format: json
+     */
+    public function testDumpsUnsupportedFormat()
+    {
+
+        $collector = new DumpDataCollector(new RequestStack());
+        $collector->getDumps('json');
+    }
+
+    public function testSubscribedEvents()
+    {
+        $events = DumpDataCollector::getSubscribedEvents();
+        $this->assertArrayHasKey(KernelEvents::RESPONSE, $events);
     }
 
     protected function getKernel()

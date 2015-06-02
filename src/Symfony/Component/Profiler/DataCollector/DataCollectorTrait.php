@@ -13,6 +13,7 @@ namespace Symfony\Component\Profiler\DataCollector;
 
 /**
  * Class DataCollectorTrait
+ * @codeCoverageIgnore till 3.0
  */
 trait DataCollectorTrait
 {

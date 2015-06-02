@@ -181,9 +181,10 @@ class DumpDataCollector extends AbstractDataCollector implements DataDumperInter
             }
         } else {
             $this->isCollected = true;
+            $data = new DumpData($this->data, $this->dataCount, $this->charset);
             $this->data = array();
             $this->dataCount = 0;
-            return new DumpData($this->data, $this->dataCount, $this->charset);
+            return $data;
         }
     }
 

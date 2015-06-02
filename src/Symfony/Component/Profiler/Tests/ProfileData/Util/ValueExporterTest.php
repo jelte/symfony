@@ -25,6 +25,25 @@ class ValueExporterTest extends \PHPUnit_Framework_TestCase
         $this->valueExporter = new ValueExporter();
     }
 
+    public function testNull()
+    {
+        $this->assertSame('null', $this->valueExporter->exportValue(null));
+    }
+
+    public function testBoolean()
+    {
+        $this->assertSame('false', $this->valueExporter->exportValue(false));
+        $this->assertSame('true', $this->valueExporter->exportValue(true));
+    }
+
+    public function testArray()
+    {
+        $this->assertSame('[]', $this->valueExporter->exportValue(array()));
+        $this->assertSame('[0 => 1, 1 => 2, 2 => 3]', $this->valueExporter->exportValue(array(1, 2, 3)));
+        $deepArray = "[\n  0 => [\n    0 => 2\n  ]\n]";
+        $this->assertSame($deepArray, $this->valueExporter->exportValue(array(array(2))));
+    }
+
     public function testDateTime()
     {
         $dateTime = new \DateTime('2014-06-10 07:35:40', new \DateTimeZone('UTC'));

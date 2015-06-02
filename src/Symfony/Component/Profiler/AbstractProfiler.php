@@ -49,7 +49,7 @@ abstract class AbstractProfiler
      * Constructor.
      *
      * @param ProfilerStorageInterface $storage A ProfilerStorageInterface instance
-     * @param LoggerInterface          $logger  A LoggerInterface instance
+     * @param LoggerInterface $logger A LoggerInterface instance
      */
     public function __construct(ProfilerStorageInterface $storage, LoggerInterface $logger = null)
     {
@@ -152,12 +152,12 @@ abstract class AbstractProfiler
     /**
      * Finds profiler tokens for the given criteria.
      *
-     * @param string $ip     The IP
-     * @param string $url    The URL
-     * @param string $limit  The maximum number of tokens to return
+     * @param string $ip The IP
+     * @param string $url The URL
+     * @param string $limit The maximum number of tokens to return
      * @param string $method The request method
-     * @param string $start  The start date to search from
-     * @param string $end    The end date to search to
+     * @param string $start The start date to search from
+     * @param string $end The end date to search to
      *
      * @return array An array of tokens
      *
@@ -181,11 +181,15 @@ abstract class AbstractProfiler
 
         $profile = $this->createProfile();
 
+        if (!$profile) {
+            return;
+        }
+
         foreach ($this->collectors as $collector) {
             $collector->setToken($profile->getToken());
-            if ( $collector instanceof RuntimeDataCollectorInterface ) {
+            if ($collector instanceof RuntimeDataCollectorInterface) {
                 $profile->addProfileData($collector->getName(), $collector->collect());
-            } else if ( $collector instanceof LateDataCollectorInterface ) {
+            } else if ($collector instanceof LateDataCollectorInterface) {
                 // we need to clone for sub-requests
                 $profile->addCollector(clone $collector);
             }
@@ -206,7 +210,7 @@ abstract class AbstractProfiler
         }
 
         try {
-            $value = new \DateTime(is_numeric($value) ? '@'.$value : $value);
+            $value = new \DateTime(is_numeric($value) ? '@' . $value : $value);
         } catch (\Exception $e) {
             return;
         }
