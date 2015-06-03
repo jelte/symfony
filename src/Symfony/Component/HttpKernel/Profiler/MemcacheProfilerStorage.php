@@ -11,97 +11,47 @@
 
 namespace Symfony\Component\HttpKernel\Profiler;
 
+use Symfony\Component\Profiler\Storage\MemcacheProfilerStorage as BaseMemcacheProfilerStorage;
+
 /**
  * Memcache Profiler Storage.
  *
  * @author Andrej Hudec <pulzarraider@gmail.com>
+ * 
+ * @deprecated since 2.8, to be removed in 3.0. Use Symfony\Component\Profiler\Storage\MemcacheProfilerStorage instead.
  */
 class MemcacheProfilerStorage extends BaseMemcacheProfilerStorage
 {
-    /**
-     * @var \Memcache
-     */
-    private $memcache;
-
-    /**
-     * Internal convenience method that returns the instance of the Memcache.
-     *
-     * @return \Memcache
-     *
-     * @throws \RuntimeException
-     */
-    protected function getMemcache()
+    protected function createProfileFromData($token, $data, $parent = null)
     {
-        if (null === $this->memcache) {
-            if (!preg_match('#^memcache://(?(?=\[.*\])\[(.*)\]|(.*)):(.*)$#', $this->dsn, $matches)) {
-                throw new \RuntimeException(sprintf('Please check your configuration. You are trying to use Memcache with an invalid dsn "%s". The expected format is "memcache://[host]:port".', $this->dsn));
-            }
+        $profile = new Profile($token);
+        $profile->setIp($data['ip']);
+        $profile->setMethod($data['method']);
+        $profile->setUrl($data['url']);
+        $profile->setTime($data['time']);
+        $profile->setCollectors($data['collectors']);
+        $profile->setCollectors($data['data']);
 
-            $host = $matches[1] ?: $matches[2];
-            $port = $matches[3];
-
-            $memcache = new \Memcache();
-            $memcache->addServer($host, $port);
-
-            $this->memcache = $memcache;
+        if (!$parent && $data['parent']) {
+            $parent = $this->read($data['parent']);
         }
 
-        return $this->memcache;
-    }
-
-    /**
-     * Set instance of the Memcache.
-     *
-     * @param \Memcache $memcache
-     */
-    public function setMemcache($memcache)
-    {
-        $this->memcache = $memcache;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function getValue($key)
-    {
-        return $this->getMemcache()->get($key);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function setValue($key, $value, $expiration = 0)
-    {
-        return $this->getMemcache()->set($key, $value, false, time() + $expiration);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function delete($key)
-    {
-        return $this->getMemcache()->delete($key);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function appendValue($key, $value, $expiration = 0)
-    {
-        $memcache = $this->getMemcache();
-
-        if (method_exists($memcache, 'append')) {
-            // Memcache v3.0
-            if (!$result = $memcache->append($key, $value, false, $expiration)) {
-                return $memcache->set($key, $value, false, $expiration);
-            }
-
-            return $result;
+        if ($parent) {
+            $profile->setParent($parent);
         }
 
-        // simulate append in Memcache <3.0
-        $content = $memcache->get($key);
+        foreach ($data['children'] as $token) {
+            if (!$token) {
+                continue;
+            }
 
-        return $memcache->set($key, $content.$value, false, $expiration);
+            if (!$childProfileData = $this->getValue($this->getItemName($token))) {
+                continue;
+            }
+
+            $profile->addChild($this->createProfileFromData($token, $childProfileData, $profile));
+        }
+
+        return $profile;
     }
 }

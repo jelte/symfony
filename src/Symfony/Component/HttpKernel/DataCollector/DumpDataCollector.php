@@ -23,6 +23,8 @@ use Symfony\Component\VarDumper\Dumper\DataDumperInterface;
 
 /**
  * @author Nicolas Grekas <p@tchwork.com>
+ *
+ * @deprecated since 2.8, to be removed in 3.0. Use Symfony\Component\Profiler\DataCollector\DumpDataCollector instead.
  */
 class DumpDataCollector extends DataCollector implements DataDumperInterface
 {
@@ -100,9 +102,9 @@ class DumpDataCollector extends DataCollector implements DataDumperInterface
                         $name = $info->getTemplateName();
                         $src = $info->getEnvironment()->getLoader()->getSource($name);
                         $info = $info->getDebugInfo();
-                        if (isset($info[$trace[$i-1]['line']])) {
+                        if (isset($info[$trace[$i - 1]['line']])) {
                             $file = false;
-                            $line = $info[$trace[$i-1]['line']];
+                            $line = $info[$trace[$i - 1]['line']];
                             $src = explode("\n", $src);
                             $fileExcerpt = array();
 
