@@ -11,10 +11,14 @@
 
 namespace Symfony\Component\HttpKernel\DataCollector\Util;
 
+use Symfony\Component\Profiler\ProfileData\Util\ValueExporter as BaseValueExporter;
+
 /**
  * @author Bernhard Schussek <bschussek@gmail.com>
+ *
+ * @deprecated since 2.8, to be removed in 3.0. Use Symfony\Component\Profiler\ProfileData\Util\ValueExporter instead.
  */
-class ValueExporter
+class ValueExporter extends BaseValueExporter
 {
     /**
      * Converts a PHP value to a string.
@@ -54,7 +58,7 @@ class ValueExporter
                 return sprintf("[\n%s%s\n%s]", $indent, implode(sprintf(", \n%s", $indent), $a), str_repeat('  ', $depth - 1));
             }
 
-            return sprintf("[%s]", implode(', ', $a));
+            return sprintf('[%s]', implode(', ', $a));
         }
 
         if (is_resource($value)) {
