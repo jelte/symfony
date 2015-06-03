@@ -226,7 +226,7 @@ class MongoDbProfilerStorage implements ProfilerStorageInterface
      *
      * @return Profile
      */
-    private function getProfile(array $data)
+    protected function getProfile(array $data)
     {
         $profile = new Profile($data['token']);
         $profile->setIp($data['ip']);
