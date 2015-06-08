@@ -156,8 +156,8 @@ class DumpDataCollectorTest extends \PHPUnit_Framework_TestCase
         );
 
         $this->assertNULL($collector->collect());
-        $collector->serialize();
-
+        $collector2 = clone $collector;
+        $collector2->unserialize($collector->serialize());
     }
 
     public function testCollectWithoutRequestOrResponse()

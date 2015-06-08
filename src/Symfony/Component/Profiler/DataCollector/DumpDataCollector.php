@@ -208,9 +208,9 @@ class DumpDataCollector extends AbstractDataCollector implements DataDumperInter
 
     public function unserialize($data)
     {
-        parent::unserialize($data);
+        $this->data = unserialize($data);
         $this->dataCount = count($this->data);
-        self::__construct($this->stopwatch);
+        self::__construct($this->requestStack, $this->stopwatch);
     }
 
     public function getDumpsCount()

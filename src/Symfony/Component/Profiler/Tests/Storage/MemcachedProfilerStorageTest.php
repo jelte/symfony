@@ -46,4 +46,22 @@ class MemcachedProfilerStorageTest extends AbstractProfilerStorageTest
     {
         return self::$storage;
     }
+
+    /**
+     * @expectedException RuntimeException
+     */
+    public function testWithInvalidDNS()
+    {
+        $storage = new MemcachedProfilerStorage('memcache://127.0.0.1:11211', '', '', 86400);
+        $storage->read('test');
+    }
+
+    /**
+     * @requires extension memcached
+     */
+    public function testWithDNS()
+    {
+        $storage = new MemcachedProfilerStorage('memcached://127.0.0.1:11211', '', '', 86400);
+        $storage->read('test');
+    }
 }
