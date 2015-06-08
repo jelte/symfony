@@ -26,14 +26,15 @@ class ConfigDataCollectorTest extends \PHPUnit_Framework_TestCase
         $kernel = new KernelForTest('test', true);
         $requestStack = new RequestStack();
         $requestStack->push(new Request());
-        $c = new ConfigDataCollector($requestStack);
+        $c = new ConfigDataCollector('Test Suite', 'test');
         $c->setKernel($kernel);
         $profileData = $c->collect();
         $this->assertInstanceOf('Symfony\Component\Profiler\ProfileData\ConfigData',$profileData);
 
+        $this->assertSame('Test Suite', $profileData->getApplicationName());
+        $this->assertSame('test', $profileData->getApplicationVersion());
         $this->assertSame('test', $profileData->getEnv());
         $this->assertTrue($profileData->isDebug());
-        $this->assertSame('config', $profileData->getName());
         $this->assertSame('testkernel', $profileData->getAppName());
         $this->assertSame(PHP_VERSION, $profileData->getPhpVersion());
         $this->assertSame(Kernel::VERSION, $profileData->getSymfonyVersion());
@@ -65,6 +66,15 @@ class ConfigDataCollectorTest extends \PHPUnit_Framework_TestCase
         } else {
             $this->assertFalse($profileData->hasAccelerator());
         }
+
+        $this->assertEquals(extension_loaded('eaccelerator') && ini_get('eaccelerator.enable'), $profileData->hasEAccelerator());
+        $this->assertEquals(extension_loaded('apc') && ini_get('apc.enabled'), $profileData->hasApc());
+        $this->assertEquals(extension_loaded('wincache') && ini_get('wincache.ocenabled'), $profileData->hasWinCache());
+        $this->assertEquals(extension_loaded('xcache') && ini_get('xcache.cacher'), $profileData->hasXCache());
+        $this->assertEquals(extension_loaded('Zend OPcache') && ini_get('opcache.enable'), $profileData->hasZendOpcache());
+        $this->assertEquals(php_sapi_name(), $profileData->getSapiName());
+
+        $this->assertCount(1, $profileData->getBundles());
 
         $this->assertEquals('config', $c->getName());
     }

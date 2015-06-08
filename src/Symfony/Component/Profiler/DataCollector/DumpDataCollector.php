@@ -85,8 +85,8 @@ class DumpDataCollector extends AbstractDataCollector implements DataDumperInter
             $trace = debug_backtrace($trace);
         }
 
-        $file = $trace[0]['file'];
-        $line = $trace[0]['line'];
+        $file = isset($trace[0]['file'])?$trace[0]['file']:null;
+        $line = isset($trace[0]['line'])?$trace[0]['line']:null;
         $name = false;
         $fileExcerpt = false;
 
@@ -99,6 +99,7 @@ class DumpDataCollector extends AbstractDataCollector implements DataDumperInter
                 $line = $trace[$i]['line'];
 
                 while (++$i < 7) {
+                    var_dump($trace[$i]);
                     if (isset($trace[$i]['function'], $trace[$i]['file']) && empty($trace[$i]['class']) && 0 !== strpos($trace[$i]['function'], 'call_user_func')) {
                         $file = $trace[$i]['file'];
                         $line = $trace[$i]['line'];

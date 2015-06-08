@@ -48,14 +48,6 @@ class MemoryData implements ProfileDataInterface
         return $this->memoryLimit;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getName()
-    {
-        return 'memory';
-    }
-
     private function convertToBytes($memoryLimit)
     {
         if ('-1' === $memoryLimit) {

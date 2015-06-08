@@ -66,11 +66,6 @@ class LoggerData implements ProfileDataInterface
         return isset($this->data['scream_count']) ? $this->data['scream_count'] : 0;
     }
 
-    public function getName()
-    {
-        return 'logger';
-    }
-
     private function sanitizeLogs($logs)
     {
         foreach ($logs as $i => $log) {

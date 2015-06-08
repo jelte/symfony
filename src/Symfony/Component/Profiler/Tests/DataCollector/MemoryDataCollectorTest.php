@@ -28,7 +28,6 @@ class MemoryDataCollectorTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf('Symfony\Component\Profiler\ProfileData\MemoryData', $data);
         $this->assertInternalType('integer', $data->getMemory());
         $this->assertInternalType('integer', $data->getMemoryLimit());
-        $this->assertSame('memory', $data->getName());
     }
 
     /** @dataProvider getBytesConversionTestData */

@@ -57,12 +57,4 @@ class RouterData
     {
         return $this->route;
     }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getName()
-    {
-        return 'router';
-    }
 }

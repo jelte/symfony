@@ -34,6 +34,8 @@ class TimeDataCollectorTest extends \PHPUnit_Framework_TestCase
 
         $data = $c->lateCollect();
         $this->assertEquals(0, $data->getStartTime());
+        $this->assertEquals(0, $data->getInitTime());
+        $this->assertEquals(0, $data->getDuration());
     }
 
     public function testCollectServerRequestTime()
@@ -83,15 +85,27 @@ class TimeDataCollectorTest extends \PHPUnit_Framework_TestCase
     {
         $requestStack = new RequestStack();
         $stopwatch = new Stopwatch();
-        $c = new TimeDataCollector($requestStack, null, $stopwatch);
-        $this->assertSame('time', $c->getName());
+        $startTime = microtime(true)-10;
+
+        $kernel = $this->getMock('Symfony\Component\HttpKernel\KernelInterface');
+        $kernel->expects($this->once())->method('getStartTime')->will($this->returnValue($startTime));
+
+        $c = new TimeDataCollector($requestStack, $kernel, $stopwatch);
+        $token = 'Mock-Test-Token-Stopwatch';
+        $stopwatch->openSection();
+        $stopwatch->start('Kernel.Request', 'section');
+        sleep(1);
+        $stopwatch->stop('Kernel.Request');
+        $stopwatch->stopSection($token);
 
         $request = new Request();
         $requestStack->push($request);
 
-        $c->setToken('Mock-Test-Token');
+        $c->setToken($token);
 
         $data = $c->lateCollect();
+        $this->assertGreaterThan(10, $data->getDuration()/1000);
         $this->assertInternalType('array', $data->getEvents());
+        $this->assertGreaterThan(0, $data->getInitTime());
     }
 }

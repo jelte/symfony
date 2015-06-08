@@ -50,12 +50,4 @@ class EventData implements ProfileDataInterface
     {
         return $this->notCalledListeners;
     }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getName()
-    {
-        return 'events';
-    }
 }

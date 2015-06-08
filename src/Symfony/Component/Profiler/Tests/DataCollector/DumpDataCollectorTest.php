@@ -19,8 +19,13 @@ use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
+use Symfony\Component\Profiler\Tests\DataCollector\Helper\TwigTemplate;
+use Symfony\Component\Stopwatch\Stopwatch;
 use Symfony\Component\VarDumper\Cloner\Data;
 use Symfony\Component\Profiler\ProfileData\DumpData;
+use Symfony\Component\VarDumper\Cloner\DumperInterface;
+use Symfony\Component\VarDumper\Dumper\DataDumperInterface;
+use Symfony\Component\VarDumper\VarDumper;
 
 /**
  * @author Nicolas Grekas <p@tchwork.com>
@@ -31,10 +36,9 @@ class DumpDataCollectorTest extends \PHPUnit_Framework_TestCase
     {
         $data = new Data(array(array(123)));
 
-        $collector = new DumpDataCollector(new RequestStack());
+        $collector = new DumpDataCollector(new RequestStack(), new Stopwatch());
 
         $this->assertSame('dump', $collector->getName());
-
         $collector->dump($data);
         $line = __LINE__ - 1;
         $this->assertSame(1, $collector->getDumpsCount());
@@ -62,6 +66,19 @@ class DumpDataCollectorTest extends \PHPUnit_Framework_TestCase
 
         $this->assertSame(0, $collector->getDumpsCount());
         $this->assertSame('a:0:{}', $collector->serialize());
+    }
+
+    public function testDumpExtensive()
+    {
+        $data = new Data(array(array(123)));
+
+        $collector = new DumpDataCollector(new RequestStack(), new Stopwatch());
+        $dumper = new VarDumper();
+        $dumper->setHandler(array($collector, 'dump'));
+        ob_start();
+        $dumper->dump($data);
+        $output = ob_get_clean();
+        $collector->serialize();
     }
 
     public function testCollectDefault()
@@ -122,6 +139,25 @@ class DumpDataCollectorTest extends \PHPUnit_Framework_TestCase
         }
         $this->assertSame(1, $collector->getDumpsCount());
         $collector->serialize();
+    }
+
+    public function testCollectWithDumper()
+    {
+        $request = new Request();
+        $requestStack = new RequestStack();
+        $requestStack->push($request);
+        $dumper = $this->getMockBuilder('Symfony\Component\VarDumper\Dumper\DataDumperInterface')->getMock();
+        $collector = new DumpDataCollector($requestStack, null, null, null, $dumper);
+        $collector->setToken('DumpDataCollectorTest');
+        $collector->onKernelResponse(
+            new FilterResponseEvent(
+                $this->getKernel(), $request, HttpKernelInterface::MASTER_REQUEST, new RedirectResponse('dummy')
+            )
+        );
+
+        $this->assertNULL($collector->collect());
+        $collector->serialize();
+
     }
 
     public function testCollectWithoutRequestOrResponse()
@@ -198,6 +234,37 @@ EOTXT;
         }
     }
 
+    public function testDumpFromTwigTemplate()
+    {
+        $collector = new DumpDataCollector(new RequestStack(), new Stopwatch());
+        $dumper = new VarDumper();
+        $dumper->setHandler(array($collector, 'dump'));
+        $environment = $this->getMockBuilder('Twig_Environment')
+            ->disableOriginalConstructor()
+            ->getMock();
+        $loader = $this->getMockBuilder('Twig_LoaderInterface')->getMock();
+        $environment->expects($this->any())->method('getLoader')->willReturn($loader);
+        $src = '';
+        for ( $i = 1; $i < 100; $i++  ) {
+            $src .= $i."\n";
+        }
+        $loader->expects($this->any())->method('getSource')->willReturn($src);
+        $template = new TwigTemplate($environment, $dumper);
+        ob_start();
+        $template->display(array(123));
+        $output = ob_get_clean();
+        $collector->serialize();
+    }
+
+    public function testDumpCallUserFunction()
+    {
+        $collector = new DumpDataCollector(new RequestStack());
+        ob_start();
+        call_user_func(array($this, 'dump'), new Data(array(array(123))), $collector);
+        $output = ob_get_clean();
+        $collector->serialize();
+    }
+
     /**
      * @expectedException \InvalidArgumentException
      * @expectedExceptionMessage Invalid dump format: json
@@ -220,4 +287,8 @@ EOTXT;
         return $this->getMock('Symfony\Component\HttpKernel\KernelInterface');
     }
 
+    private function dump(Data $data, $dumper)
+    {
+        $dumper->dump($data);
+    }
 }

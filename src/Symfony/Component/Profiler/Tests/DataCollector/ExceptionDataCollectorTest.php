@@ -39,7 +39,7 @@ class ExceptionDataCollectorTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($flattened, $data->getException());
         $this->assertSame('foo', $data->getMessage());
         $this->assertSame(500, $data->getCode());
-        $this->assertSame('exception', $data->getName());
+        $this->assertSame(500, $data->getStatusCode());
         $this->assertSame($trace, $data->getTrace());
     }
 }

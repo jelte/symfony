@@ -41,7 +41,6 @@ class RequestDataCollectorTest extends \PHPUnit_Framework_TestCase
 
         $attributes = $data->getRequestAttributes();
 
-        $this->assertSame('request', $data->getName());
         $this->assertInstanceOf('Symfony\Component\HttpFoundation\HeaderBag', $data->getRequestHeaders());
         $this->assertInstanceOf('Symfony\Component\HttpFoundation\ParameterBag', $data->getRequestServer());
         $this->assertInstanceOf('Symfony\Component\HttpFoundation\ParameterBag', $data->getRequestCookies());
@@ -50,8 +49,11 @@ class RequestDataCollectorTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf('Symfony\Component\HttpFoundation\ParameterBag', $data->getRequestQuery());
         $this->assertSame('html', $data->getFormat());
         $this->assertSame('foobar', $data->getRoute());
+        $this->assertSame($requestStack->getMasterRequest()->getPathInfo(), $data->getPathInfo());
         $this->assertSame(array('name' => 'foo'), $data->getRouteParams());
         $this->assertSame(array(), $data->getSessionAttributes());
+        $this->assertSame(array(), $data->getSessionMetadata());
+        $this->assertSame(array(), $data->getFlashes());
         $this->assertSame('en', $data->getLocale());
         $this->assertRegExp('/Resource\(stream#\d+\)/', $attributes->get('resource'));
         $this->assertSame('Object(stdClass)', $attributes->get('object'));
@@ -60,7 +62,9 @@ class RequestDataCollectorTest extends \PHPUnit_Framework_TestCase
         $this->assertSame('OK', $data->getStatusText());
         $this->assertSame(200, $data->getStatusCode());
         $this->assertSame('application/json', $data->getContentType());
+        $this->assertSame('', $data->getContent());
     }
+
 
     public function testCollectNoResponseForRequest()
     {

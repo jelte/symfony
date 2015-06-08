@@ -86,12 +86,4 @@ class ExceptionData implements ProfileDataInterface
     {
         return $this->exception->getTrace();
     }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getName()
-    {
-        return 'exception';
-    }
 }

@@ -62,9 +62,4 @@ class DumpData extends AbstractProfileData
 
         return $dumps;
     }
-
-    public function getName()
-    {
-        return 'dump';
-    }
 }

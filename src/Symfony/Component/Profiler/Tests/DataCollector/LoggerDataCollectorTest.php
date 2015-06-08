@@ -28,7 +28,6 @@ class LoggerDataCollectorTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('logger', $c->getName());
         $data = $c->lateCollect();
 
-        $this->assertSame('logger', $data->getName());
         $this->assertSame($nb, $data->countErrors());
         $this->assertSame($expectedLogs ?: $logs, $data->getLogs());
         $this->assertSame($expectedDeprecationCount, $data->countDeprecations());

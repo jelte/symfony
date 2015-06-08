@@ -37,6 +37,7 @@ class RouterDataCollectorTest extends \PHPUnit_Framework_TestCase
         $data = $c->collect();
 
         $this->assertInstanceof('Symfony\Component\Profiler\ProfileData\RouterData', $data);
+        $this->assertFalse($data->getRedirect());
     }
 
     public function testCollectRedirectResponse()
@@ -59,6 +60,7 @@ class RouterDataCollectorTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceof('Symfony\Component\Profiler\ProfileData\RouterData', $data);
         $this->assertSame('n/a', $data->getTargetRoute());
         $this->assertSame('dummy', $data->getTargetUrl());
+        $this->assertTrue($data->getRedirect());
     }
 
     public function testCollectNoResponseForRequest()

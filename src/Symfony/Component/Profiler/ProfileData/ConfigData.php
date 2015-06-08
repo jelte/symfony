@@ -182,12 +182,4 @@ class ConfigData extends AbstractProfileData
     {
         return $this->data['sapi_name'];
     }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getName()
-    {
-        return 'config';
-    }
 }

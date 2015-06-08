@@ -39,7 +39,7 @@ class RequestData extends AbstractProfileData
         // attributes are serialized and as they can be anything, they need to be converted to strings.
         $attributes = array();
         foreach ($request->attributes->all() as $key => $value) {
-            if ('_route' === $key && is_object($value)) {
+            if ('_route' === $key && is_object($value) && method_exists($value, 'getPath')) {
                 $attributes[$key] = $this->varToString($value->getPath());
             } elseif ('_route_params' === $key) {
                 // we need to keep route params as an array (see getRouteParams())
@@ -70,7 +70,7 @@ class RequestData extends AbstractProfileData
                 $sessionMetadata['Last used'] = date(DATE_RFC822, $session->getMetadataBag()->getLastUsed());
                 $sessionMetadata['Lifetime'] = $session->getMetadataBag()->getLifetime();
                 $sessionAttributes = $session->all();
-                $flashes = $session->getFlashBag()->peekAll();
+                $flashes = $session->getBag('flashes')->peekAll();
             }
         }
 
@@ -271,12 +271,6 @@ class RequestData extends AbstractProfileData
     public function getController()
     {
         return $this->data['controller'];
-    }
-
-
-    public function getName()
-    {
-        return 'request';
     }
 
     private function getCookieHeader($name, $value, $expires, $path, $domain, $secure, $httponly)

@@ -93,12 +93,4 @@ class TimeData implements ProfileDataInterface
     {
         return $this->startTime;
     }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getName()
-    {
-        return 'time';
-    }
 }
