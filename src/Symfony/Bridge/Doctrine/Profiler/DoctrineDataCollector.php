@@ -9,23 +9,20 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Bridge\Doctrine\DataCollector;
+namespace Symfony\Bridge\Doctrine\Profiler;
 
 use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\DBAL\Logging\DebugStack;
 use Doctrine\DBAL\Types\Type;
-use Symfony\Component\HttpKernel\DataCollector\DataCollector;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Profiler\DataCollector\AbstractDataCollector;
+use Symfony\Component\Profiler\DataCollector\RuntimeDataCollectorInterface;
 
 /**
  * DoctrineDataCollector.
  *
  * @author Fabien Potencier <fabien@symfony.com>
- *
- * @deprecated since 2.8, to be removed in 3.0. Use Symfony\Bridge\Twig\Profiler\DoctrineDataCollector instead.
  */
-class DoctrineDataCollector extends DataCollector
+class DoctrineDataCollector extends AbstractDataCollector implements RuntimeDataCollectorInterface
 {
     private $registry;
     private $connections;
@@ -53,50 +50,14 @@ class DoctrineDataCollector extends DataCollector
     /**
      * {@inheritdoc}
      */
-    public function collect(Request $request, Response $response, \Exception $exception = null)
+    public function collect()
     {
         $queries = array();
         foreach ($this->loggers as $name => $logger) {
             $queries[$name] = $this->sanitizeQueries($name, $logger->queries);
         }
 
-        $this->data = array(
-            'queries' => $queries,
-            'connections' => $this->connections,
-            'managers' => $this->managers,
-        );
-    }
-
-    public function getManagers()
-    {
-        return $this->data['managers'];
-    }
-
-    public function getConnections()
-    {
-        return $this->data['connections'];
-    }
-
-    public function getQueryCount()
-    {
-        return array_sum(array_map('count', $this->data['queries']));
-    }
-
-    public function getQueries()
-    {
-        return $this->data['queries'];
-    }
-
-    public function getTime()
-    {
-        $time = 0;
-        foreach ($this->data['queries'] as $queries) {
-            foreach ($queries as $query) {
-                $time += $query['executionMS'];
-            }
-        }
-
-        return $time;
+        return new DoctrineProfileData($queries, $this->registry->getConnections(), $this->registry->getManagers());
     }
 
     /**

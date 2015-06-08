@@ -15,7 +15,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\HttpKernel\Profiler\Profiler;
+use Symfony\Component\Profiler\HttpProfiler;
 
 /**
  * Exports a profile.
@@ -26,7 +26,7 @@ class ExportCommand extends Command
 {
     private $profiler;
 
-    public function __construct(Profiler $profiler = null)
+    public function __construct(HttpProfiler $profiler = null)
     {
         $this->profiler = $profiler;
 
@@ -66,7 +66,7 @@ EOF
     {
         $token = $input->getArgument('token');
 
-        if (!$profile = $this->profiler->loadProfile($token)) {
+        if (!$profile = $this->profiler->load($token)) {
             throw new \LogicException(sprintf('Profile with token "%s" does not exist.', $token));
         }
 

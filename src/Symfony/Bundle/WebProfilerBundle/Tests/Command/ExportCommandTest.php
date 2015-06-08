@@ -13,7 +13,7 @@ namespace Symfony\Bundle\WebProfilerBundle\Tests\Command;
 
 use Symfony\Bundle\WebProfilerBundle\Command\ExportCommand;
 use Symfony\Component\Console\Tester\CommandTester;
-use Symfony\Component\HttpKernel\Profiler\Profile;
+use Symfony\Component\Profiler\Profile;
 
 class ExportCommandTest extends \PHPUnit_Framework_TestCase
 {
@@ -23,7 +23,7 @@ class ExportCommandTest extends \PHPUnit_Framework_TestCase
     public function testExecuteWithUnknownToken()
     {
         $profiler = $this
-            ->getMockBuilder('Symfony\Component\HttpKernel\Profiler\Profiler')
+            ->getMockBuilder('Symfony\Component\Profiler\HttpProfiler')
             ->disableOriginalConstructor()
             ->getMock()
         ;
@@ -36,13 +36,13 @@ class ExportCommandTest extends \PHPUnit_Framework_TestCase
     public function testExecuteWithToken()
     {
         $profiler = $this
-            ->getMockBuilder('Symfony\Component\HttpKernel\Profiler\Profiler')
+            ->getMockBuilder('Symfony\Component\Profiler\HttpProfiler')
             ->disableOriginalConstructor()
             ->getMock()
         ;
 
         $profile = new Profile('TOKEN');
-        $profiler->expects($this->once())->method('loadProfile')->with('TOKEN')->will($this->returnValue($profile));
+        $profiler->expects($this->once())->method('load')->with('TOKEN')->will($this->returnValue($profile));
 
         $command = new ExportCommand($profiler);
         $commandTester = new CommandTester($command);

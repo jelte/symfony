@@ -77,7 +77,7 @@ class TemplateManagerTest extends TestCase
 
         $profile = $this->mockProfile();
         $profile->expects($this->any())
-            ->method('hasCollector')
+            ->method('has')
             ->will($this->returnCallback(array($this, 'profileHasCollectorCallback')));
 
         $this->assertEquals('FooBundle:Collector:foo.html.twig', $this->templateManager->getName($profile, 'foo'));
@@ -91,7 +91,7 @@ class TemplateManagerTest extends TestCase
     {
         $profile = $this->mockProfile();
         $profile->expects($this->any())
-            ->method('hasCollector')
+            ->method('has')
             ->will($this->returnCallback(array($this, 'profilerHasCallback')));
 
         $this->profiler->expects($this->any())
@@ -129,7 +129,7 @@ class TemplateManagerTest extends TestCase
 
     protected function mockProfile()
     {
-        $this->profile = $this->getMockBuilder('Symfony\Component\HttpKernel\Profiler\Profile')
+        $this->profile = $this->getMockBuilder('Symfony\Component\Profiler\Profile')
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -153,7 +153,7 @@ class TemplateManagerTest extends TestCase
 
     protected function mockProfiler()
     {
-        $this->profiler = $this->getMockBuilder('Symfony\Component\HttpKernel\Profiler\Profiler')
+        $this->profiler = $this->getMockBuilder('Symfony\Component\Profiler\HttpProfiler')
             ->disableOriginalConstructor()
             ->getMock();
 

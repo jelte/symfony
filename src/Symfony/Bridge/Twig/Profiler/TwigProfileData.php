@@ -9,21 +9,11 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Bridge\Twig\DataCollector;
+namespace Symfony\Bridge\Twig\Profiler;
 
-use Symfony\Component\HttpKernel\DataCollector\DataCollector;
-use Symfony\Component\HttpKernel\DataCollector\LateDataCollectorInterface;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Profiler\ProfileData\ProfileDataInterface;
 
-/**
- * TwigDataCollector.
- *
- * @author Fabien Potencier <fabien@symfony.com>
- *
- * @deprecated since 2.8, to be removed in 3.0. Use Symfony\Bridge\Twig\Profiler\TwigDataCollector instead.
- */
-class TwigDataCollector extends DataCollector implements LateDataCollectorInterface
+class TwigProfileData implements ProfileDataInterface
 {
     private $profile;
     private $computed;
@@ -33,24 +23,9 @@ class TwigDataCollector extends DataCollector implements LateDataCollectorInterf
         $this->profile = $profile;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function collect(Request $request, Response $response, \Exception $exception = null)
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function lateCollect()
-    {
-        $this->data['profile'] = serialize($this->profile);
-    }
-
     public function getTime()
     {
-        return $this->getProfile()->getDuration() * 1000;
+        return $this->profile->getDuration() * 1000;
     }
 
     public function getTemplateCount()
@@ -77,22 +52,18 @@ class TwigDataCollector extends DataCollector implements LateDataCollectorInterf
     {
         $dumper = new \Twig_Profiler_Dumper_Html();
 
-        return new \Twig_Markup($dumper->dump($this->getProfile()), 'UTF-8');
+        return new \Twig_Markup($dumper->dump($this->profile), 'UTF-8');
     }
 
     public function getProfile()
     {
-        if (null === $this->profile) {
-            $this->profile = unserialize($this->data['profile']);
-        }
-
         return $this->profile;
     }
 
     private function getComputedData($index)
     {
         if (null === $this->computed) {
-            $this->computed = $this->computeData($this->getProfile());
+            $this->computed = $this->computeData($this->profile);
         }
 
         return $this->computed[$index];
@@ -135,11 +106,4 @@ class TwigDataCollector extends DataCollector implements LateDataCollectorInterf
         return $data;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getName()
-    {
-        return 'twig';
-    }
 }

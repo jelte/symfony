@@ -12,7 +12,7 @@
 namespace Symfony\Bundle\WebProfilerBundle\Tests\Controller;
 
 use Symfony\Bundle\WebProfilerBundle\Controller\ProfilerController;
-use Symfony\Component\HttpKernel\Profiler\Profile;
+use Symfony\Component\Profiler\Profile;
 use Symfony\Component\HttpFoundation\Request;
 
 class ProfilerControllerTest extends \PHPUnit_Framework_TestCase
@@ -25,7 +25,7 @@ class ProfilerControllerTest extends \PHPUnit_Framework_TestCase
         $urlGenerator = $this->getMock('Symfony\Component\Routing\Generator\UrlGeneratorInterface');
         $twig = $this->getMock('Twig_Environment');
         $profiler = $this
-            ->getMockBuilder('Symfony\Component\HttpKernel\Profiler\Profiler')
+            ->getMockBuilder('Symfony\Component\Profiler\HttpProfiler')
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -49,7 +49,7 @@ class ProfilerControllerTest extends \PHPUnit_Framework_TestCase
         $urlGenerator = $this->getMock('Symfony\Component\Routing\Generator\UrlGeneratorInterface');
         $twig = $this->getMock('Twig_Environment');
         $profiler = $this
-            ->getMockBuilder('Symfony\Component\HttpKernel\Profiler\Profiler')
+            ->getMockBuilder('Symfony\Component\Profiler\HttpProfiler')
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -57,7 +57,7 @@ class ProfilerControllerTest extends \PHPUnit_Framework_TestCase
 
         $profiler
             ->expects($this->exactly(2))
-            ->method('loadProfile')
+            ->method('load')
             ->will($this->returnCallback(function ($token) {
                 if ('found' == $token) {
                     return new Profile($token);
@@ -79,7 +79,7 @@ class ProfilerControllerTest extends \PHPUnit_Framework_TestCase
         $urlGenerator = $this->getMock('Symfony\Component\Routing\Generator\UrlGeneratorInterface');
         $twig = $this->getMock('Twig_Environment');
         $profiler = $this
-            ->getMockBuilder('Symfony\Component\HttpKernel\Profiler\Profiler')
+            ->getMockBuilder('Symfony\Component\Profiler\HttpProfiler')
             ->disableOriginalConstructor()
             ->getMock();
 

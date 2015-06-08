@@ -17,7 +17,7 @@ use Symfony\Component\Routing\Matcher\TraceableUrlMatcher;
 use Symfony\Component\Routing\RouteCollection;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\HttpKernel\Profiler\Profiler;
+use Symfony\Component\Profiler\HttpProfiler;
 
 /**
  * RouterController.
@@ -31,7 +31,7 @@ class RouterController
     private $matcher;
     private $routes;
 
-    public function __construct(Profiler $profiler = null, \Twig_Environment $twig, UrlMatcherInterface $matcher = null, RouteCollection $routes = null)
+    public function __construct(HttpProfiler $profiler = null, \Twig_Environment $twig, UrlMatcherInterface $matcher = null, RouteCollection $routes = null)
     {
         $this->profiler = $profiler;
         $this->twig = $twig;
@@ -60,7 +60,7 @@ class RouterController
             return new Response('The Router is not enabled.', 200, array('Content-Type' => 'text/html'));
         }
 
-        $profile = $this->profiler->loadProfile($token);
+        $profile = $this->profiler->load($token);
 
         $context = $this->matcher->getContext();
         $context->setMethod($profile->getMethod());

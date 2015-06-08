@@ -367,6 +367,11 @@ class Profile
         return $this->getProfileData($name);
     }
 
+    public function has($name)
+    {
+        return $this->hasCollector($name) || $this->hasProfileData($name);
+    }
+
     public function __sleep()
     {
         return array('token', 'parent', 'children', 'data', 'collectors', 'ip', 'method', 'url', 'time');
