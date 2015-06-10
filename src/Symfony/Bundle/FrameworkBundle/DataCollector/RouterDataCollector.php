@@ -11,7 +11,7 @@
 
 namespace Symfony\Bundle\FrameworkBundle\DataCollector;
 
-use Symfony\Component\Profiler\DataCollector\RouterDataCollector as BaseRouterDataCollector;
+use Symfony\Component\HttpKernel\Profiler\RouterDataCollector as BaseRouterDataCollector;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\RedirectController;
 

@@ -5,13 +5,23 @@
     xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
     <parameters>
-        <parameter key="profiler.class">Symfony\Component\HttpKernel\Profiler\Profiler</parameter>
-        <parameter key="profiler_listener.class">Symfony\Component\HttpKernel\EventListener\ProfilerListener</parameter>
+        <parameter key="profiler.class">Symfony\Component\Profiler\HttpProfiler</parameter>
+        <parameter key="profiler_listener.class">Symfony\Component\Profiler\EventListener\HttpProfilerListener</parameter>
+
+        <parameter key="console_profiler.class">Symfony\Component\Profiler\ConsoleProfiler</parameter>
+        <parameter key="console_profiler_listener.class">Symfony\Component\Profiler\EventListener\ConsoleProfilerListener</parameter>
     </parameters>
 
     <services>
         <service id="profiler" class="%profiler.class%">
             <tag name="monolog.logger" channel="profiler" />
+            <argument type="service" id="request_stack" />
+            <argument type="service" id="profiler.storage" />
+            <argument type="service" id="logger" on-invalid="null" />
+        </service>
+
+        <service id="console_profiler" class="%console_profiler.class%">
+            <tag name="monolog.logger" channel="console_profiler" />
             <argument type="service" id="profiler.storage" />
             <argument type="service" id="logger" on-invalid="null" />
         </service>
@@ -26,10 +36,16 @@
         <service id="profiler_listener" class="%profiler_listener.class%">
             <tag name="kernel.event_subscriber" />
             <argument type="service" id="profiler" />
+            <argument type="service" id="request_stack" />
             <argument type="service" id="profiler.request_matcher" on-invalid="null" />
             <argument>%profiler_listener.only_exceptions%</argument>
             <argument>%profiler_listener.only_master_requests%</argument>
-            <argument type="service" id="request_stack" />
+        </service>
+
+        <service id="console_profiler_listener" class="%console_profiler_listener.class%">
+            <tag name="kernel.event_subscriber" />
+            <argument type="service" id="console_profiler" />
+            <argument>%profiler_listener.only_exceptions%</argument>
         </service>
     </services>
 </container>
