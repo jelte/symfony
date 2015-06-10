@@ -1,10 +1,10 @@
 <?php
 
-namespace Symfony\Bundle\SecurityBundle\Tests\Profiler;
+namespace Symfony\Component\Security\Core\Tests\Profiler;
 
-use Symfony\Bundle\SecurityBundle\Profiler\SecurityDataCollector;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
+use Symfony\Component\Security\Core\Profiler\SecurityDataCollector;
 use Symfony\Component\Security\Core\Role\Role;
 use Symfony\Component\Security\Core\Role\RoleHierarchy;
 

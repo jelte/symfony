@@ -1,13 +1,13 @@
 <?php
 
-namespace Symfony\Bundle\SecurityBundle\Profiler;
+namespace Symfony\Component\Security\Core\Profiler;
 
 use Symfony\Component\Profiler\ProfileData\ProfileDataInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Role\RoleHierarchyInterface;
 use Symfony\Component\Security\Core\Role\RoleInterface;
 
-class SecurityProfileData implements ProfileDataInterface
+class SecurityData implements ProfileDataInterface
 {
     private $enabled = false;
     private $authenticated = false;
@@ -17,6 +17,12 @@ class SecurityProfileData implements ProfileDataInterface
     private $inheritedRoles = array();
     private $supportsRoleHierarchy = false;
 
+    /**
+     * Constructor.
+     *
+     * @param TokenStorageInterface $tokenStorage
+     * @param RoleHierarchyInterface $roleHierarchy
+     */
     public function __construct(TokenStorageInterface $tokenStorage = null, RoleHierarchyInterface $roleHierarchy = null)
     {
         $this->supportsRoleHierarchy = null !== $roleHierarchy;

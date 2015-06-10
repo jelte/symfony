@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Bundle\SecurityBundle\Profiler;
+namespace Symfony\Component\Security\Core\Profiler;
 
 use Symfony\Component\Profiler\DataCollector\AbstractDataCollector;
 use Symfony\Component\Profiler\DataCollector\RuntimeDataCollectorInterface;
@@ -43,7 +43,7 @@ class SecurityDataCollector extends AbstractDataCollector implements RuntimeData
      */
     public function collect()
     {
-        return new SecurityProfileData($this->tokenStorage, $this->roleHierarchy);
+        return new SecurityData($this->tokenStorage, $this->roleHierarchy);
     }
 
     /**
