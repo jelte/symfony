@@ -102,7 +102,7 @@ class ProfilerController
         return new Response($this->twig->render($this->getTemplateManager()->getName($profile, $panel), array(
             'token' => $token,
             'profile' => $profile,
-            'collector' => $profile->getCollector($panel),
+            'collector' => $profile->get($panel),
             'panel' => $panel,
             'page' => $page,
             'request' => $request,

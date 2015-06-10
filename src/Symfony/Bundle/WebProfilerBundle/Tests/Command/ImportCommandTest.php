@@ -13,6 +13,7 @@ namespace Symfony\Bundle\WebProfilerBundle\Tests\Command;
 
 use Symfony\Bundle\WebProfilerBundle\Command\ImportCommand;
 use Symfony\Component\Console\Tester\CommandTester;
+use Symfony\Component\Profiler\HttpProfile;
 use Symfony\Component\Profiler\Profile;
 
 class ImportCommandTest extends \PHPUnit_Framework_TestCase
@@ -25,7 +26,8 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
             ->getMock()
         ;
 
-        $profiler->expects($this->once())->method('import')->will($this->returnValue(new Profile('TOKEN')));
+        $profile = new HttpProfile('TOKEN', '127.0.0.1', 'http://foo.bar/', 'GET', 200);
+        $profiler->expects($this->once())->method('import')->will($this->returnValue($profile));
 
         $command = new ImportCommand($profiler);
         $commandTester = new CommandTester($command);

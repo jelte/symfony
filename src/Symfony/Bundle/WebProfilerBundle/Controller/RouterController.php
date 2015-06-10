@@ -66,11 +66,11 @@ class RouterController
         $context->setMethod($profile->getMethod());
         $matcher = new TraceableUrlMatcher($this->routes, $context);
 
-        $request = $profile->getCollector('request');
+        $request = $profile->get('request');
 
         return new Response($this->twig->render('@WebProfiler/Router/panel.html.twig', array(
             'request' => $request,
-            'router' => $profile->getCollector('router'),
+            'router' => $profile->get('router'),
             'traces' => $matcher->getTraces($request->getPathInfo()),
         )), 200, array('Content-Type' => 'text/html'));
     }

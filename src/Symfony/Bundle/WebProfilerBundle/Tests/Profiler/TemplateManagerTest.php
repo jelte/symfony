@@ -129,7 +129,7 @@ class TemplateManagerTest extends TestCase
 
     protected function mockProfile()
     {
-        $this->profile = $this->getMockBuilder('Symfony\Component\Profiler\Profile')
+        $this->profile = $this->getMockBuilder('Symfony\Component\Profiler\HttpProfile')
             ->disableOriginalConstructor()
             ->getMock();
 

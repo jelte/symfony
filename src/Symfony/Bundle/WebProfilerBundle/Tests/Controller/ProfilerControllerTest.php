@@ -12,6 +12,7 @@
 namespace Symfony\Bundle\WebProfilerBundle\Tests\Controller;
 
 use Symfony\Bundle\WebProfilerBundle\Controller\ProfilerController;
+use Symfony\Component\Profiler\HttpProfile;
 use Symfony\Component\Profiler\Profile;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -60,7 +61,7 @@ class ProfilerControllerTest extends \PHPUnit_Framework_TestCase
             ->method('load')
             ->will($this->returnCallback(function ($token) {
                 if ('found' == $token) {
-                    return new Profile($token);
+                    return new HttpProfile('TOKEN', '127.0.0.1', 'http://foo.bar/', 'GET', 200);
                 }
 
                 return;

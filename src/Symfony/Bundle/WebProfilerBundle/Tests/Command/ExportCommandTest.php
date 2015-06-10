@@ -13,6 +13,7 @@ namespace Symfony\Bundle\WebProfilerBundle\Tests\Command;
 
 use Symfony\Bundle\WebProfilerBundle\Command\ExportCommand;
 use Symfony\Component\Console\Tester\CommandTester;
+use Symfony\Component\Profiler\HttpProfile;
 use Symfony\Component\Profiler\Profile;
 
 class ExportCommandTest extends \PHPUnit_Framework_TestCase
@@ -41,7 +42,7 @@ class ExportCommandTest extends \PHPUnit_Framework_TestCase
             ->getMock()
         ;
 
-        $profile = new Profile('TOKEN');
+        $profile = new HttpProfile('TOKEN', '127.0.0.1', 'http://foo.bar/', 'GET', 200);
         $profiler->expects($this->once())->method('load')->with('TOKEN')->will($this->returnValue($profile));
 
         $command = new ExportCommand($profiler);

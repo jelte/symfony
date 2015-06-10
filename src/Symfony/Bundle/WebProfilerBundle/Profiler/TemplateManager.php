@@ -14,6 +14,7 @@ namespace Symfony\Bundle\WebProfilerBundle\Profiler;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Profiler\HttpProfiler;
 use Symfony\Component\Profiler\Profile;
+use Symfony\Component\Profiler\ProfileInterface;
 
 /**
  * Profiler Templates Manager.
@@ -44,14 +45,14 @@ class TemplateManager
     /**
      * Gets the template name for a given panel.
      *
-     * @param Profile $profile
+     * @param ProfileInterface $profile
      * @param string  $panel
      *
      * @return mixed
      *
      * @throws NotFoundHttpException
      */
-    public function getName(Profile $profile, $panel)
+    public function getName(ProfileInterface $profile, $panel)
     {
         $templates = $this->getNames($profile);
 
@@ -65,11 +66,11 @@ class TemplateManager
     /**
      * Gets the templates for a given profile.
      *
-     * @param Profile $profile
+     * @param ProfileInterface $profile
      *
      * @return array
      */
-    public function getTemplates(Profile $profile)
+    public function getTemplates(ProfileInterface $profile)
     {
         $templates = $this->getNames($profile);
         foreach ($templates as $name => $template) {
@@ -82,13 +83,13 @@ class TemplateManager
     /**
      * Gets template names of templates that are present in the viewed profile.
      *
-     * @param Profile $profile
+     * @param ProfileInterface $profile
      *
      * @return array
      *
      * @throws \UnexpectedValueException
      */
-    protected function getNames(Profile $profile)
+    protected function getNames(ProfileInterface $profile)
     {
         $templates = array();
 
