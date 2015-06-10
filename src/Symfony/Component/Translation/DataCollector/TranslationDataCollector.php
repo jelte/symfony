@@ -19,6 +19,8 @@ use Symfony\Component\Translation\DataCollectorTranslator;
 
 /**
  * @author Abdellatif Ait boudad <a.aitboudad@gmail.com>
+ *
+ * @deprecated since 2.8, to be removed in 3.0. Use Symfony\Component\Translation\Profiler\TranslationDataCollector instead.
  */
 class TranslationDataCollector extends DataCollector implements LateDataCollectorInterface
 {
