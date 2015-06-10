@@ -46,7 +46,7 @@ class TemplateManager
      * Gets the template name for a given panel.
      *
      * @param ProfileInterface $profile
-     * @param string  $panel
+     * @param string           $panel
      *
      * @return mixed
      *

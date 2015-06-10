@@ -64,7 +64,7 @@ class DoctrineDataCollector extends AbstractDataCollector implements RuntimeData
         return 'db';
     }
 
-    private function sanitizeQueries($connectionName, $queries)
+    private function sanitizeQueries($connectionName, array $queries)
     {
         foreach ($queries as $i => $query) {
             $queries[$i] = $this->sanitizeQuery($connectionName, $query);

@@ -210,7 +210,7 @@ abstract class AbstractMemcacheProfilerStorage extends AbstractProfilerStorage
      *
      * @param string $token
      *
-     * @return string
+     * @return string|false
      */
     protected function getItemName($token)
     {
@@ -226,7 +226,7 @@ abstract class AbstractMemcacheProfilerStorage extends AbstractProfilerStorage
     /**
      * Get name of index.
      *
-     * @return string
+     * @return string|false
      */
     private function getIndexName()
     {
