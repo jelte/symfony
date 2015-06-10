@@ -75,10 +75,11 @@ class FileProfilerStorageTest extends AbstractProfilerStorageTest
 
         $handle = fopen(self::$tmpDir.'/index.csv', 'r');
         for ($i = 0; $i < $iteration; ++$i) {
-            $row = fgetcsv($handle);
-            $this->assertEquals('token'.$i, $row[0]);
-            $this->assertEquals('127.0.0.'.$i, $row[1]);
-            $this->assertEquals('http://foo.bar/'.$i, $row[3]);
+            $row = fgets($handle);
+            $values = json_decode($row, true);
+            $this->assertEquals('token'.$i, $values['token']);
+            $this->assertEquals('127.0.0.'.$i, $values['ip']);
+            $this->assertEquals('http://foo.bar/'.$i, $values['url']);
         }
         $this->assertFalse(fgetcsv($handle));
     }

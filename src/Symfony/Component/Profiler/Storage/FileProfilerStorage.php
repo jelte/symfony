@@ -11,14 +11,12 @@
 
 namespace Symfony\Component\Profiler\Storage;
 
-use Symfony\Component\Profiler\Profile;
-
 /**
  * Storage for profiler using files.
  *
  * @author Alexandre Salomé <alexandre.salome@gmail.com>
  */
-class FileProfilerStorage implements ProfilerStorageInterface
+class FileProfilerStorage extends AbstractProfilerStorage
 {
     /**
      * Folder where profiler data are stored.
@@ -51,7 +49,7 @@ class FileProfilerStorage implements ProfilerStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function find($ip, $url, $limit, $method, $start = null, $end = null)
+    public function findBy(array $criteria, $limit, $start = null, $end = null)
     {
         $file = $this->getIndexFilename();
 
@@ -64,38 +62,38 @@ class FileProfilerStorage implements ProfilerStorageInterface
 
         $result = array();
         while (count($result) < $limit && $line = $this->readLineFromFile($file)) {
-            $values = str_getcsv($line);
-            list($csvToken, $csvIp, $csvMethod, $csvUrl, $csvTime, $csvParent) = $values;
-            $csvStatusCode = isset($values[6]) ? $values[6] : null;
+            $values = json_decode($line, true);
+            $time = (int) $values['time'];
 
-            $csvTime = (int) $csvTime;
-
-            if ($ip && false === strpos($csvIp, $ip) || $url && false === strpos($csvUrl, $url) || $method && false === strpos($csvMethod, $method)) {
+            if (!empty($start) && $time < $start) {
                 continue;
             }
 
-            if (!empty($start) && $csvTime < $start) {
+            if (!empty($end) && $time > $end) {
                 continue;
             }
 
-            if (!empty($end) && $csvTime > $end) {
+            if (!$this->validateCriteria($values, $criteria)) {
                 continue;
             }
 
-            $result[$csvToken] = array(
-                'token' => $csvToken,
-                'ip' => $csvIp,
-                'method' => $csvMethod,
-                'url' => $csvUrl,
-                'time' => $csvTime,
-                'parent' => $csvParent,
-                'status_code' => $csvStatusCode,
-            );
+            $result[$values['token']] = $values;
         }
 
         fclose($file);
 
         return array_values($result);
+    }
+
+    private function validateCriteria($values, $criteria)
+    {
+        foreach ($criteria as $key => $value) {
+            if (false === strpos($values[$key], $value)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -119,21 +117,21 @@ class FileProfilerStorage implements ProfilerStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function read($token)
+    public function doRead($token)
     {
         if (!$token || !file_exists($file = $this->getFilename($token))) {
             return;
         }
 
-        return $this->createProfileFromData($token, unserialize(file_get_contents($file)));
+        return unserialize(file_get_contents($file));
     }
 
     /**
      * {@inheritdoc}
      */
-    public function write(Profile $profile)
+    public function doWrite($token, array $data, array $indexedData)
     {
-        $file = $this->getFilename($profile->getToken());
+        $file = $this->getFilename($token);
 
         $profileIndexed = is_file($file);
         if (!$profileIndexed) {
@@ -143,19 +141,6 @@ class FileProfilerStorage implements ProfilerStorageInterface
                 mkdir($dir, 0777, true);
             }
         }
-
-        // Store profile
-        $data = array(
-            'token' => $profile->getToken(),
-            'parent' => $profile->getParentToken(),
-            'children' => array_map(function ($p) { return $p->getToken(); }, $profile->getChildren()),
-            'data' => $profile->getData(),
-            'collectors' => $profile->getCollectors(),
-            'ip' => $profile->getIp(),
-            'method' => $profile->getMethod(),
-            'url' => $profile->getUrl(),
-            'time' => $profile->getTime(),
-        );
 
         if (false === file_put_contents($file, serialize($data))) {
             return false;
@@ -167,15 +152,7 @@ class FileProfilerStorage implements ProfilerStorageInterface
                 return false;
             }
 
-            fputcsv($file, array(
-                $profile->getToken(),
-                $profile->getIp(),
-                $profile->getMethod(),
-                $profile->getUrl(),
-                $profile->getTime(),
-                $profile->getParentToken(),
-                $profile->getStatusCode(),
-            ));
+            fputs($file, json_encode($indexedData)."\n");
             fclose($file);
         }
 
@@ -253,34 +230,5 @@ class FileProfilerStorage implements ProfilerStorageInterface
         }
 
         return '' === $line ? null : $line;
-    }
-
-    protected function createProfileFromData($token, $data, $parent = null)
-    {
-        $profile = new Profile($token);
-        $profile->setIp($data['ip']);
-        $profile->setMethod($data['method']);
-        $profile->setUrl($data['url']);
-        $profile->setTime($data['time']);
-        $profile->setCollectors($data['collectors']);
-        $profile->setData($data['data']);
-
-        if (!$parent && $data['parent']) {
-            $parent = $this->read($data['parent']);
-        }
-
-        if ($parent) {
-            $profile->setParent($parent);
-        }
-
-        foreach ($data['children'] as $token) {
-            if (!$token || !file_exists($file = $this->getFilename($token))) {
-                continue;
-            }
-
-            $profile->addChild($this->createProfileFromData($token, unserialize(file_get_contents($file)), $profile));
-        }
-
-        return $profile;
     }
 }

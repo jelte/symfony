@@ -11,6 +11,7 @@
 
 namespace Symfony\Component\HttpKernel\Profiler;
 
+use Symfony\Component\Profiler\Encoder\HttpProfileEncoder;
 use Symfony\Component\Profiler\Storage\SqliteProfilerStorage as BaseSqliteProfilerStorage;
 
 /**
@@ -20,28 +21,34 @@ use Symfony\Component\Profiler\Storage\SqliteProfilerStorage as BaseSqliteProfil
  *
  * @deprecated since 2.8, to be removed in 3.0. Use Symfony\Component\Profiler\Storage\SqliteProfilerStorage instead.
  */
-class SqliteProfilerStorage extends BaseSqliteProfilerStorage
+class SqliteProfilerStorage extends BaseSqliteProfilerStorage implements ProfilerStorageInterface
 {
-    protected function createProfileFromData($token, $data, $parent = null)
+    /**
+     * {@inheritdoc}
+     */
+    public function __construct($dsn, $username = '', $password = '', $lifetime = 86400)
     {
-        $profile = new Profile($token);
-        $profile->setIp($data['ip']);
-        $profile->setMethod($data['method']);
-        $profile->setUrl($data['url']);
-        $profile->setTime($data['time']);
-        $profile->setCollectors(unserialize(base64_decode($data['collectors'])));
-        $profile->setData(unserialize(base64_decode($data['data'])));
+        parent::__construct($dsn, $username, $password, $lifetime);
+        $this->addEncoder(new HttpProfileEncoder());
+    }
 
-        if (!$parent && !empty($data['parent'])) {
-            $parent = $this->read($data['parent']);
+    /**
+     * {@inheritdoc}
+     */
+    public function find($ip, $url, $limit, $method, $start = null, $end = null)
+    {
+        $criteria = array();
+
+        if ( !empty($ip) ) {
+            $criteria['ip'] = $ip;
+        }
+        if ( !empty($url) ) {
+            $criteria['url'] = $url;
+        }
+        if ( !empty($method) ) {
+            $criteria['method'] = $method;
         }
 
-        if ($parent) {
-            $profile->setParent($parent);
-        }
-
-        $profile->setChildren($this->readChildren($token, $profile));
-
-        return $profile;
+        return parent::findBy($criteria, $limit, $start, $end);
     }
 }

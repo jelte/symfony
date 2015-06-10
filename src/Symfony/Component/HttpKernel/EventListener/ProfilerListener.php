@@ -47,6 +47,7 @@ class ProfilerListener extends HttpProfilerListener
             // The onKernelRequest() method fires some logic only when the
             // RequestStack instance is not provided as a dependency.
             trigger_error('Since version 2.4, the '.__METHOD__.' method must accept a RequestStack instance to get the request instead of using the '.__CLASS__.'::onKernelRequest method that will be removed in 3.0.', E_USER_DEPRECATED);
+            $requestStack = new RequestStack();
         }
 
         parent::__construct($profiler, $requestStack, $matcher, $onlyException, $onlyMasterRequests);

@@ -11,6 +11,7 @@
 
 namespace Symfony\Component\HttpKernel\Profiler;
 
+use Symfony\Component\Profiler\Encoder\HttpProfileEncoder;
 use Symfony\Component\Profiler\Storage\RedisProfilerStorage as BaseRedisProfilerStorage;
 
 /**
@@ -21,38 +22,33 @@ use Symfony\Component\Profiler\Storage\RedisProfilerStorage as BaseRedisProfiler
  *
  * @deprecated since 2.8, to be removed in 3.0. Use Symfony\Component\Profiler\Storage\RedisProfilerStorage instead.
  */
-class RedisProfilerStorage extends BaseRedisProfilerStorage
+class RedisProfilerStorage extends BaseRedisProfilerStorage implements ProfilerStorageInterface
 {
-    protected function createProfileFromData($token, $data, $parent = null)
+    /**
+     * {@inheritdoc}
+     */
+    public function __construct($dsn, $username = '', $password = '', $lifetime = 86400)
     {
-        $profile = new Profile($token);
-        $profile->setIp($data['ip']);
-        $profile->setMethod($data['method']);
-        $profile->setUrl($data['url']);
-        $profile->setTime($data['time']);
-        $profile->setCollectors($data['collectors']);
-        $profile->setData($data['data']);
+        parent::__construct($dsn, $username, $password, $lifetime);
+        $this->addEncoder(new HttpProfileEncoder());
+    }
 
-        if (!$parent && $data['parent']) {
-            $parent = $this->read($data['parent']);
+    /**
+     * {@inheritdoc}
+     */
+    public function find($ip, $url, $limit, $method, $start = null, $end = null)
+    {
+        $criteria = array();
+
+        if ( !empty($ip) ) {
+            $criteria['ip'] = $ip;
         }
-
-        if ($parent) {
-            $profile->setParent($parent);
+        if ( !empty($url) ) {
+            $criteria['url'] = $url;
         }
-
-        foreach ($data['children'] as $token) {
-            if (!$token) {
-                continue;
-            }
-
-            if (!$childProfileData = $this->getValue($this->getItemName($token), self::REDIS_SERIALIZER_PHP)) {
-                continue;
-            }
-
-            $profile->addChild($this->createProfileFromData($token, $childProfileData, $profile));
+        if ( !empty($method) ) {
+            $criteria['method'] = $method;
         }
-
-        return $profile;
+        return parent::findBy($criteria, $limit, $start, $end);
     }
 }

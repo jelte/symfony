@@ -12,6 +12,7 @@
 namespace Symfony\Component\Profiler\Storage;
 
 use Symfony\Component\Profiler\Profile;
+use Symfony\Component\Profiler\ProfileInterface;
 
 /**
  * ProfilerStorageInterface.
@@ -23,16 +24,14 @@ interface ProfilerStorageInterface
     /**
      * Finds profiler tokens for the given criteria.
      *
-     * @param string   $ip     The IP
-     * @param string   $url    The URL
-     * @param string   $limit  The maximum number of tokens to return
-     * @param string   $method The request method
-     * @param int|null $start  The start date to search from
-     * @param int|null $end    The end date to search to
+     * @param array    $criteria The criteria to find profiles
+     * @param string   $limit    The maximum number of tokens to return
+     * @param int|null $start    The start date to search from
+     * @param int|null $end      The end date to search to
      *
      * @return array An array of tokens
      */
-    public function find($ip, $url, $limit, $method, $start = null, $end = null);
+    public function findBy(array $criteria, $limit, $start = null, $end = null);
 
     /**
      * Reads data associated with the given token.
@@ -48,11 +47,11 @@ interface ProfilerStorageInterface
     /**
      * Saves a Profile.
      *
-     * @param Profile $profile A Profile instance
+     * @param ProfileInterface $profile A Profile instance
      *
      * @return bool Write operation successful
      */
-    public function write(Profile $profile);
+    public function write(ProfileInterface $profile);
 
     /**
      * Purges all data from the database.

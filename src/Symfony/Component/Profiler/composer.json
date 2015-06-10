@@ -22,10 +22,15 @@
         "symfony/dependency-injection": "~2.7",
         "symfony/http-kernel": "~2.7",
         "symfony/http-foundation": "~2.7",
+        "symfony/console": "~2.7",
         "symfony/var-dumper": "~2.7",
         "symfony/stopwatch": "~2.7",
         "symfony/config": "~2.0",
         "twig/twig": "~1.18"
+    },
+    "suggest": {
+        "symfony/http-kernel": "",
+        "symfony/console": ""
     },
     "autoload": {
         "psr-4": { "Symfony\\Component\\Profiler\\": "" }

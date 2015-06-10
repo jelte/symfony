@@ -49,12 +49,17 @@ abstract class AbstractProfiler
      * Constructor.
      *
      * @param ProfilerStorageInterface $storage A ProfilerStorageInterface instance
-     * @param LoggerInterface $logger A LoggerInterface instance
+     * @param LoggerInterface          $logger  A LoggerInterface instance
      */
     public function __construct(ProfilerStorageInterface $storage, LoggerInterface $logger = null)
     {
         $this->storage = $storage;
         $this->logger = $logger;
+    }
+
+    public function generateToken()
+    {
+        return substr(hash('sha256', uniqid(mt_rand(), true)), 0, 6);
     }
 
     /**
@@ -78,7 +83,7 @@ abstract class AbstractProfiler
      *
      * @param string $token A token
      *
-     * @return Profile A Profile instance
+     * @return ProfileInterface A Profile instance
      */
     public function load($token)
     {
@@ -88,16 +93,16 @@ abstract class AbstractProfiler
     /**
      * Saves a Profile.
      *
-     * @param Profile $profile A Profile instance
+     * @param ProfileInterface $profile A Profile instance
      *
      * @return bool
      */
-    public function save(Profile $profile)
+    public function save(ProfileInterface $profile)
     {
         // late collect
         foreach ($profile->getCollectors() as $collector) {
             if ($collector instanceof LateDataCollectorInterface) {
-                $profile->addProfileData($collector->getName(), $collector->lateCollect());
+                $profile->add($collector->getName(), $collector->lateCollect());
                 $profile->removeCollector($collector->getName());
             }
         }
@@ -120,11 +125,11 @@ abstract class AbstractProfiler
     /**
      * Exports the current profiler data.
      *
-     * @param Profile $profile A Profile instance
+     * @param ProfileInterface $profile A Profile instance
      *
      * @return string The exported data
      */
-    public function export(Profile $profile)
+    public function export(ProfileInterface $profile)
     {
         return base64_encode(serialize($profile));
     }
@@ -152,26 +157,24 @@ abstract class AbstractProfiler
     /**
      * Finds profiler tokens for the given criteria.
      *
-     * @param string $ip The IP
-     * @param string $url The URL
-     * @param string $limit The maximum number of tokens to return
-     * @param string $method The request method
-     * @param string $start The start date to search from
-     * @param string $end The end date to search to
+     * @param array  $criteria The Criteria
+     * @param string $limit    The maximum number of tokens to return
+     * @param string $start    The start date to search from
+     * @param string $end      The end date to search to
      *
      * @return array An array of tokens
      *
      * @see http://php.net/manual/en/datetime.formats.php for the supported date/time formats
      */
-    public function find($ip, $url, $limit, $method, $start, $end)
+    public function findBy(array $criteria, $limit, $start, $end)
     {
-        return $this->storage->find($ip, $url, $limit, $method, $this->getTimestamp($start), $this->getTimestamp($end));
+        return $this->storage->findBy($criteria, $limit, $this->getTimestamp($start), $this->getTimestamp($end));
     }
 
     /**
      * Collects data.
      *
-     * @return Profile|null A Profile instance or null if the profiler is disabled
+     * @return ProfileInterface|null A Profile instance or null if the profiler is disabled
      */
     public function profile()
     {
@@ -188,8 +191,8 @@ abstract class AbstractProfiler
         foreach ($this->collectors as $collector) {
             $collector->setToken($profile->getToken());
             if ($collector instanceof RuntimeDataCollectorInterface) {
-                $profile->addProfileData($collector->getName(), $collector->collect());
-            } else if ($collector instanceof LateDataCollectorInterface) {
+                $profile->add($collector->getName(), $collector->collect());
+            } elseif ($collector instanceof LateDataCollectorInterface) {
                 // we need to clone for sub-requests
                 $profile->addCollector(clone $collector);
             }
@@ -199,7 +202,7 @@ abstract class AbstractProfiler
     }
 
     /**
-     * @return Profile
+     * @return ProfileInterface
      */
     abstract protected function createProfile();
 
@@ -210,7 +213,7 @@ abstract class AbstractProfiler
         }
 
         try {
-            $value = new \DateTime(is_numeric($value) ? '@' . $value : $value);
+            $value = new \DateTime(is_numeric($value) ? '@'.$value : $value);
         } catch (\Exception $e) {
             return;
         }

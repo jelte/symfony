@@ -11,8 +11,6 @@
 
 namespace Symfony\Component\Profiler\Storage;
 
-use Symfony\Component\Profiler\Profile;
-
 /**
  * Base PDO storage for profiling information in a PDO database.
  *
@@ -20,7 +18,7 @@ use Symfony\Component\Profiler\Profile;
  * @author Jan Schumann <js@schumann-it.com>
  * @author Jelte Steijaert <jelte@khepri.be>
  */
-abstract class AbstractPdoProfilerStorage implements ProfilerStorageInterface
+abstract class AbstractPdoProfilerStorage extends AbstractProfilerStorage
 {
     protected $dsn;
     protected $username;
@@ -47,7 +45,7 @@ abstract class AbstractPdoProfilerStorage implements ProfilerStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function find($ip, $url, $limit, $method, $start = null, $end = null)
+    public function findBy(array $criteria, $limit, $start = null, $end = null)
     {
         if (null === $start) {
             $start = 0;
@@ -57,12 +55,12 @@ abstract class AbstractPdoProfilerStorage implements ProfilerStorageInterface
             $end = time();
         }
 
-        list($criteria, $args) = $this->buildCriteria($ip, $url, $start, $end, $limit, $method);
+        list($criteria, $args) = $this->buildCriteria($criteria, $start, $end, $limit);
 
         $criteria = $criteria ? 'WHERE '.implode(' AND ', $criteria) : '';
 
         $db = $this->initDb();
-        $tokens = $this->fetch($db, 'SELECT token, ip, method, url, time, parent, status_code FROM sf_profiler_data '.$criteria.' ORDER BY time DESC LIMIT '.((int) $limit), $args);
+        $tokens = $this->fetch($db, 'SELECT * FROM sf_profiler_data '.$criteria.' ORDER BY time DESC LIMIT '.((int) $limit), $args);
         $this->close($db);
 
         return $tokens;
@@ -71,41 +69,38 @@ abstract class AbstractPdoProfilerStorage implements ProfilerStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function read($token)
+    public function doRead($token)
     {
         $db = $this->initDb();
         $args = array(':token' => $token);
-        $data = $this->fetch($db, 'SELECT data, collectors, parent, ip, method, url, time FROM sf_profiler_data WHERE token = :token LIMIT 1', $args);
+        $data = $this->fetch($db, 'SELECT * FROM sf_profiler_data WHERE token = :token LIMIT 1', $args);
         $this->close($db);
         if (isset($data[0]['data'])) {
-            return $this->createProfileFromData($token, $data[0]);
+            return $data[0];
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function write(Profile $profile)
+    public function doWrite($token, array $data, array $indexedData)
     {
         $db = $this->initDb();
+        $fields = array_merge(array('created_at'), array_keys($data));
         $args = array(
-            ':token' => $profile->getToken(),
-            ':parent' => $profile->getParentToken(),
-            ':data' => base64_encode(serialize($profile->getData())),
-            ':collectors' => base64_encode(serialize($profile->getCollectors())),
-            ':ip' => $profile->getIp(),
-            ':method' => $profile->getMethod(),
-            ':url' => $profile->getUrl(),
-            ':time' => $profile->getTime(),
             ':created_at' => time(),
-            ':status_code' => $profile->getStatusCode(),
         );
+        foreach ($data as $key => $value) {
+            $args[':'.$key] = $value;
+        }
 
         try {
-            if ($this->has($profile->getToken())) {
-                $this->exec($db, 'UPDATE sf_profiler_data SET parent = :parent, data = :data, collectors = :collectors, ip = :ip, method = :method, url = :url, time = :time, created_at = :created_at, status_code = :status_code WHERE token = :token', $args);
+            $this->ensureColumnsExist($data, $indexedData);
+
+            if ($this->has($args[':token'])) {
+                $this->exec($db, 'UPDATE sf_profiler_data SET '.implode(', ', array_map(function ($field) { return $field.' = :'.$field; }, $fields)).' WHERE token = :token', $args);
             } else {
-                $this->exec($db, 'INSERT INTO sf_profiler_data (token, parent, data, collectors, ip, method, url, time, created_at, status_code) VALUES (:token, :parent, :data, :collectors, :ip, :method, :url, :time, :created_at, :status_code)', $args);
+                $this->exec($db, 'INSERT INTO sf_profiler_data ('.implode(', ', $fields).') VALUES ('.implode(', ', array_keys($args)).')', $args);
             }
             $this->cleanup();
             $status = true;
@@ -131,16 +126,14 @@ abstract class AbstractPdoProfilerStorage implements ProfilerStorageInterface
     /**
      * Build SQL criteria to fetch records by ip and url.
      *
-     * @param string $ip     The IP
-     * @param string $url    The URL
-     * @param string $start  The start period to search from
-     * @param string $end    The end period to search to
-     * @param string $limit  The maximum number of tokens to return
-     * @param string $method The request method
+     * @param array  $criteria The Criteria
+     * @param string $start    The start period to search from
+     * @param string $end      The end period to search to
+     * @param string $limit    The maximum number of tokens to return
      *
      * @return array An array with (criteria, args)
      */
-    abstract protected function buildCriteria($ip, $url, $start, $end, $limit, $method);
+    abstract protected function buildCriteria(array $criteria, $start, $end, $limit);
 
     /**
      * Initializes the database.
@@ -148,6 +141,7 @@ abstract class AbstractPdoProfilerStorage implements ProfilerStorageInterface
      * @throws \RuntimeException When the requested database driver is not installed
      */
     abstract protected function initDb();
+    abstract protected function ensureColumnsExist(array $data, array $indexedData);
 
     protected function cleanup()
     {
@@ -199,55 +193,6 @@ abstract class AbstractPdoProfilerStorage implements ProfilerStorageInterface
 
     protected function close($db)
     {
-    }
-
-    protected function createProfileFromData($token, $data, $parent = null)
-    {
-        $profile = new Profile($token);
-        $profile->setIp($data['ip']);
-        $profile->setMethod($data['method']);
-        $profile->setUrl($data['url']);
-        $profile->setTime($data['time']);
-        $profile->setCollectors(unserialize(base64_decode($data['collectors'])));
-        $profile->setData(unserialize(base64_decode($data['data'])));
-
-        if (!$parent && !empty($data['parent'])) {
-            $parent = $this->read($data['parent']);
-        }
-
-        if ($parent) {
-            $profile->setParent($parent);
-        }
-
-        $profile->setChildren($this->readChildren($token, $profile));
-
-        return $profile;
-    }
-
-    /**
-     * Reads the child profiles for the given token.
-     *
-     * @param string $token  The parent token
-     * @param string $parent The parent instance
-     *
-     * @return Profile[] An array of Profile instance
-     */
-    protected function readChildren($token, $parent)
-    {
-        $db = $this->initDb();
-        $data = $this->fetch($db, 'SELECT token, data, collectors, ip, method, url, time FROM sf_profiler_data WHERE parent = :token', array(':token' => $token));
-        $this->close($db);
-
-        if (!$data) {
-            return array();
-        }
-
-        $profiles = array();
-        foreach ($data as $d) {
-            $profiles[] = $this->createProfileFromData($d['token'], $d, $parent);
-        }
-
-        return $profiles;
     }
 
     /**

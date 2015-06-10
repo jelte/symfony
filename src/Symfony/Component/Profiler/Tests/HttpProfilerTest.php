@@ -12,11 +12,13 @@
 namespace Symfony\Component\Profiler\Tests;
 
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpKernel\Profiler\RequestDataCollector;
 use Symfony\Component\Profiler\DataCollector\MemoryDataCollector;
-use Symfony\Component\Profiler\DataCollector\RequestDataCollector;
 use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
-use Symfony\Component\Profiler\Profile;
+use Symfony\Component\Profiler\Encoder\HttpProfileEncoder;
+use Symfony\Component\Profiler\HttpProfile;
+use Symfony\Component\Profiler\ProfileInterface;
 use Symfony\Component\Profiler\Storage\ProfilerStorageInterface;
 use Symfony\Component\Profiler\Storage\SqliteProfilerStorage;
 use Symfony\Component\Profiler\HttpProfiler;
@@ -81,7 +83,7 @@ class HttpProfilerTest extends \PHPUnit_Framework_TestCase
 
         $this->assertSame(204, $profile->getStatusCode());
         $this->assertSame('GET', $profile->getMethod());
-        $this->assertEquals(array('foo' => 'bar'), $profile->getProfileData('request')->getRequestQuery()->all());
+        $this->assertEquals(array('foo' => 'bar'), $profile->get('request')->getRequestQuery()->all());
 
         $this->assertTrue($profiler->save($profiler->profile()));
     }
@@ -103,26 +105,25 @@ class HttpProfilerTest extends \PHPUnit_Framework_TestCase
     {
         $profiler = new HttpProfiler(new RequestStack(), $this->storage);
 
-        $this->assertCount(0, $profiler->find(null, null, null, null, '7th April 2014', '9th April 2014'));
+        $this->assertCount(0, $profiler->findBy(array(), null, '7th April 2014', '9th April 2014'));
     }
 
     public function testFindWorksWithTimestamps()
     {
         $profiler = new HttpProfiler(new RequestStack(), $this->storage);
 
-        $this->assertCount(0, $profiler->find(null, null, null, null, '1396828800', '1397001600'));
+        $this->assertCount(0, $profiler->findBy(array(), null, '1396828800', '1397001600'));
     }
 
     public function testFindWorksWithInvalidDates()
     {
         $profiler = new HttpProfiler(new RequestStack(), $this->storage);
 
-        $this->assertCount(0, $profiler->find(null, null, null, null, 'some string', ''));
+        $this->assertCount(0, $profiler->findBy(array(), null, 'some string', ''));
     }
 
     public function testLoadFromResponse()
     {
-
         $response = new Response('', 204);
 
         $profiler = new HttpProfiler(new RequestStack(), $this->storage);
@@ -130,7 +131,6 @@ class HttpProfilerTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse($profiler->loadFromResponse($response));
         $response->headers->set('X-Debug-Token', 'tokens');
         $this->assertNULL($profiler->loadFromResponse($response));
-
     }
 
     public function testPurge()
@@ -138,10 +138,10 @@ class HttpProfilerTest extends \PHPUnit_Framework_TestCase
         $storage = new DummyStorage();
         $profiler = new HttpProfiler(new RequestStack(), $storage);
 
-        $storage->write(new Profile('test'));
-        $this->assertCount(1, $storage->find());
+        $storage->write(new HttpProfile('test', '127.0.0.1', '/', 'GET', 200));
+        $this->assertCount(1, $storage->findBy());
         $profiler->purge();
-        $this->assertCount(0, $storage->find());
+        $this->assertCount(0, $storage->findBy());
     }
 
     public function testExport()
@@ -149,7 +149,7 @@ class HttpProfilerTest extends \PHPUnit_Framework_TestCase
         $storage = new DummyStorage();
         $profiler = new HttpProfiler(new RequestStack(), $storage);
 
-        $profile = new Profile('test');
+        $profile = new HttpProfile('test', '127.0.0.1', '/', 'GET', 200);
 
         $this->assertEquals(base64_encode(serialize($profile)), $profiler->export($profile));
     }
@@ -159,10 +159,10 @@ class HttpProfilerTest extends \PHPUnit_Framework_TestCase
         $storage = new DummyStorage();
         $profiler = new HttpProfiler(new RequestStack(), $storage);
 
-        $profile = new Profile('test');
+        $profile = new HttpProfile('test', '127.0.0.1', '/', 'GET', 200);
         $base64Profile = base64_encode(serialize($profile));
 
-        $this->assertInstanceof('Symfony\Component\Profiler\Profile', $profiler->import($base64Profile));
+        $this->assertInstanceof('Symfony\Component\Profiler\HttpProfile', $profiler->import($base64Profile));
         $this->assertFalse($profiler->import($base64Profile));
     }
 
@@ -175,7 +175,7 @@ class HttpProfilerTest extends \PHPUnit_Framework_TestCase
         $storage = new DummyStorage();
         $profiler = new HttpProfiler(new RequestStack(), $storage, $logger);
 
-        $profile = new Profile('test');
+        $profile = new HttpProfile('test', '127.0.0.1', '/', 'GET', 200);
 
         $this->assertTrue($profiler->save($profile));
         $this->assertFalse($profiler->save($profile));
@@ -192,7 +192,8 @@ class HttpProfilerTest extends \PHPUnit_Framework_TestCase
             @unlink($this->tmp);
         }
 
-        $this->storage = new SqliteProfilerStorage('sqlite:' . $this->tmp);
+        $this->storage = new SqliteProfilerStorage('sqlite:'.$this->tmp);
+        $this->storage->addEncoder(new HttpProfileEncoder());
         $this->storage->purge();
     }
 
@@ -211,7 +212,7 @@ class DummyStorage implements ProfilerStorageInterface
 {
     protected $profiles = array();
 
-    public function find($ip = null, $url = null, $limit = null, $method = null, $start = null, $end = null)
+    public function findBy(array $criteria = array(), $limit = null, $start = null, $end = null)
     {
         return $this->profiles;
     }
@@ -221,10 +222,11 @@ class DummyStorage implements ProfilerStorageInterface
         if (!isset($this->profiles[$token])) {
             return false;
         }
+
         return $this->profiles[$token];
     }
 
-    public function write(Profile $profile)
+    public function write(ProfileInterface $profile)
     {
         if (isset($this->profiles[$profile->getToken()])) {
             return false;

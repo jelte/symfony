@@ -12,9 +12,11 @@
 namespace Symfony\Component\Profiler\Tests\Storage;
 
 use Symfony\Component\Profiler\DataCollector\RuntimeDataCollectorInterface;
+use Symfony\Component\Profiler\Encoder\ConsoleProfileEncoder;
+use Symfony\Component\Profiler\Encoder\HttpProfileEncoder;
+use Symfony\Component\Profiler\HttpProfile;
 use Symfony\Component\Profiler\ProfileData\ProfileDataInterface;
 use Symfony\Component\Profiler\Storage\MongoDbProfilerStorage;
-use Symfony\Component\Profiler\Profile;
 use Symfony\Component\Profiler\DataCollector\AbstractDataCollector;
 
 class DummyMongoDbProfilerStorage extends MongoDbProfilerStorage
@@ -69,6 +71,8 @@ class MongoDbProfilerStorageTest extends AbstractProfilerStorageTest
     {
         if (extension_loaded('mongo')) {
             self::$storage = new DummyMongoDbProfilerStorage('mongodb://localhost/symfony_tests/profiler_data', '', '', 86400);
+            self::$storage->addEncoder(new HttpProfileEncoder());
+            self::$storage->addEncoder(new ConsoleProfileEncoder());
             try {
                 self::$storage->getMongo();
             } catch (\MongoConnectionException $e) {
@@ -116,12 +120,10 @@ class MongoDbProfilerStorageTest extends AbstractProfilerStorageTest
         $dt = new \DateTime('-2 day');
         for ($i = 0; $i < 3; ++$i) {
             $dt->modify('-1 day');
-            $profile = new Profile('time_'.$i);
-            $profile->setTime($dt->getTimestamp());
-            $profile->setMethod('GET');
+            $profile = new HttpProfile('time_'.$i, '127.0.0.1', 'http://foo.bar', 'GET', 200, $dt->getTimestamp());
             self::$storage->write($profile);
         }
-        $records = self::$storage->find('', '', 3, 'GET');
+        $records = self::$storage->findBy(array(), 3);
         $this->assertCount(1, $records, '->find() returns only one record');
         $this->assertEquals($records[0]['token'], 'time_2', '->find() returns the latest added record');
         self::$storage->purge();
@@ -140,7 +142,7 @@ class MongoDbProfilerStorageTest extends AbstractProfilerStorageTest
 
     public function testUtf8()
     {
-        $profile = new Profile('utf8_test_profile');
+        $profile = new HttpProfile('utf8_test_profile', '127.0.0.1', 'http://foo.bar', 'GET', 200);
 
         $utf8Data = 'HЁʃʃϿ, ϢorЃd!';
 
@@ -148,13 +150,12 @@ class MongoDbProfilerStorageTest extends AbstractProfilerStorageTest
             new MongoDbProfilerStorageTestProfileData($utf8Data)
         );
 
-        $profile->addProfileData($collector->getName(), $collector->collect());
+        $profile->add($collector->getName(), $collector->collect());
 
         self::$storage->write($profile);
 
         $readProfile = self::$storage->read('utf8_test_profile');
         $data = $readProfile->getData();
-
         $this->assertCount(1, $data);
         $this->assertArrayHasKey('test_data_collector', $data);
         $this->assertEquals($utf8Data, $data['test_data_collector']->getData(), 'Non-UTF8 data is properly encoded/decoded');
@@ -173,7 +174,6 @@ class MongoDbProfilerStorageTest extends AbstractProfilerStorageTest
         if (self::$storage) {
             self::$storage->purge();
         } else {
-            $this->markTestSkipped('MongoDbProfilerStorageTest requires the mongo PHP extension and a MongoDB server on localhost');
         }
     }
 }

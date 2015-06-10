@@ -11,6 +11,7 @@
 
 namespace Symfony\Component\HttpKernel\Profiler;
 
+use Symfony\Component\Profiler\Encoder\HttpProfileEncoder;
 use Symfony\Component\Profiler\Storage\MemcacheProfilerStorage as BaseMemcacheProfilerStorage;
 
 /**
@@ -22,36 +23,31 @@ use Symfony\Component\Profiler\Storage\MemcacheProfilerStorage as BaseMemcachePr
  */
 class MemcacheProfilerStorage extends BaseMemcacheProfilerStorage
 {
-    protected function createProfileFromData($token, $data, $parent = null)
+    /**
+     * {@inheritdoc}
+     */
+    public function __construct($dsn, $lifetime = 86400)
     {
-        $profile = new Profile($token);
-        $profile->setIp($data['ip']);
-        $profile->setMethod($data['method']);
-        $profile->setUrl($data['url']);
-        $profile->setTime($data['time']);
-        $profile->setCollectors($data['collectors']);
-        $profile->setCollectors($data['data']);
+        parent::__construct($dsn, $lifetime);
+        $this->addEncoder(new HttpProfileEncoder());
+    }
 
-        if (!$parent && $data['parent']) {
-            $parent = $this->read($data['parent']);
+    /**
+     * {@inheritdoc}
+     */
+    public function find($ip, $url, $limit, $method, $start = null, $end = null)
+    {
+        $criteria = array();
+
+        if ( !empty($ip) ) {
+            $criteria['ip'] = $ip;
         }
-
-        if ($parent) {
-            $profile->setParent($parent);
+        if ( !empty($url) ) {
+            $criteria['url'] = $url;
         }
-
-        foreach ($data['children'] as $token) {
-            if (!$token) {
-                continue;
-            }
-
-            if (!$childProfileData = $this->getValue($this->getItemName($token))) {
-                continue;
-            }
-
-            $profile->addChild($this->createProfileFromData($token, $childProfileData, $profile));
+        if ( !empty($method) ) {
+            $criteria['method'] = $method;
         }
-
-        return $profile;
+        return parent::findBy($criteria, $limit, $start, $end);
     }
 }

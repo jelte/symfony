@@ -46,7 +46,7 @@ class HttpProfilerListener implements EventSubscriberInterface
      * @param bool                         $onlyException      true if the profiler only collects data when an exception occurs, false otherwise
      * @param bool                         $onlyMasterRequests true if the profiler only collects data when the request is a master request, false otherwise
      */
-    public function __construct(HttpProfiler $profiler, RequestStack $requestStack = null, RequestMatcherInterface $matcher = null, $onlyException = false, $onlyMasterRequests = false)
+    public function __construct(HttpProfiler $profiler, RequestStack $requestStack, RequestMatcherInterface $matcher = null, $onlyException = false, $onlyMasterRequests = false)
     {
         $this->profiler = $profiler;
         $this->requestStack = $requestStack;
@@ -102,12 +102,14 @@ class HttpProfilerListener implements EventSubscriberInterface
 
         $this->profiles[$request] = $profile;
 
-        // "if" to be removed when requestStack is required
-        if (null !== $this->requestStack) {
-            $this->parents[$request] = $this->requestStack->getParentRequest();
-        }
+        $this->parents[$request] = $this->requestStack->getParentRequest();
     }
 
+    /**
+     * Handles the onKernelTerminate event.
+     *
+     * @param PostResponseEvent $event
+     */
     public function onKernelTerminate(PostResponseEvent $event)
     {
         // attach children to parents
@@ -129,6 +131,9 @@ class HttpProfilerListener implements EventSubscriberInterface
         $this->parents = new \SplObjectStorage();
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public static function getSubscribedEvents()
     {
         return array(

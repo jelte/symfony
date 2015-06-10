@@ -11,6 +11,8 @@
 
 namespace Symfony\Component\Profiler\Tests\Storage;
 
+use Symfony\Component\Profiler\Encoder\ConsoleProfileEncoder;
+use Symfony\Component\Profiler\Encoder\HttpProfileEncoder;
 use Symfony\Component\Profiler\Storage\MemcacheProfilerStorage;
 use Symfony\Component\Profiler\Tests\Storage\Mock\MemcacheMock;
 
@@ -24,6 +26,8 @@ class MemcacheProfilerStorageTest extends AbstractProfilerStorageTest
         $memcacheMock->addServer('127.0.0.1', 11211);
 
         self::$storage = new MemcacheProfilerStorage('memcache://127.0.0.1:11211', '', '', 86400);
+        self::$storage->addEncoder(new HttpProfileEncoder());
+        self::$storage->addEncoder(new ConsoleProfileEncoder());
         self::$storage->setMemcache($memcacheMock);
 
         if (self::$storage) {

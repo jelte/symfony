@@ -11,6 +11,8 @@
 
 namespace Symfony\Component\Profiler\Tests\Storage;
 
+use Symfony\Component\Profiler\Encoder\ConsoleProfileEncoder;
+use Symfony\Component\Profiler\Encoder\HttpProfileEncoder;
 use Symfony\Component\Profiler\Storage\RedisProfilerStorage;
 use Symfony\Component\Profiler\Tests\Storage\Mock\RedisMock;
 
@@ -24,6 +26,8 @@ class RedisProfilerStorageTest extends AbstractProfilerStorageTest
         $redisMock->connect('127.0.0.1', 6379);
 
         self::$storage = new RedisProfilerStorage('redis://127.0.0.1:6379', '', '', 86400);
+        self::$storage->addEncoder(new HttpProfileEncoder());
+        self::$storage->addEncoder(new ConsoleProfileEncoder());
         self::$storage->setRedis($redisMock);
 
         if (self::$storage) {

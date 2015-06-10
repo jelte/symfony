@@ -27,7 +27,7 @@ class HttpProfilerListenerTest extends \PHPUnit_Framework_TestCase
      */
     public function testKernelTerminate()
     {
-        $profile = $this->getMockBuilder('Symfony\Component\Profiler\Profile')
+        $profile = $this->getMockBuilder('Symfony\Component\Profiler\HttpProfile')
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -86,10 +86,9 @@ class HttpProfilerListenerTest extends \PHPUnit_Framework_TestCase
 
         $kernel = $this->getMock('Symfony\Component\HttpKernel\HttpKernelInterface');
 
-        $subRequest =  $this->getMockBuilder('Symfony\Component\HttpFoundation\Request')
+        $subRequest = $this->getMockBuilder('Symfony\Component\HttpFoundation\Request')
             ->disableOriginalConstructor()
             ->getMock();
-
 
         $requestStack = new RequestStack();
 
@@ -114,7 +113,7 @@ class HttpProfilerListenerTest extends \PHPUnit_Framework_TestCase
 
         $kernel = $this->getMock('Symfony\Component\HttpKernel\HttpKernelInterface');
 
-        $subRequest =  $this->getMockBuilder('Symfony\Component\HttpFoundation\Request')
+        $subRequest = $this->getMockBuilder('Symfony\Component\HttpFoundation\Request')
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -205,5 +204,4 @@ class HttpProfilerListenerTest extends \PHPUnit_Framework_TestCase
         $this->assertArrayHasKey(KernelEvents::RESPONSE, $events);
         $this->assertArrayHasKey(KernelEvents::EXCEPTION, $events);
     }
-
 }

@@ -11,9 +11,7 @@
 
 namespace Symfony\Component\Profiler\Storage;
 
-use Symfony\Component\Profiler\Profile;
-
-class MongoDbProfilerStorage implements ProfilerStorageInterface
+class MongoDbProfilerStorage extends AbstractProfilerStorage
 {
     protected $dsn;
     protected $lifetime;
@@ -36,13 +34,13 @@ class MongoDbProfilerStorage implements ProfilerStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function find($ip, $url, $limit, $method, $start = null, $end = null)
+    public function findBy(array $criteria, $limit, $start = null, $end = null)
     {
-        $cursor = $this->getMongo()->find($this->buildQuery($ip, $url, $method, $start, $end), array('_id', 'parent', 'ip', 'method', 'url', 'time', 'status_code'))->sort(array('time' => -1))->limit($limit);
+        $cursor = $this->getMongo()->find($this->buildQuery($criteria, $start, $end), array('_id', 'indexed'))->sort(array('indexed.time' => -1))->limit($limit);
 
         $tokens = array();
         foreach ($cursor as $profile) {
-            $tokens[] = $this->getData($profile);
+            $tokens[] = $profile['indexed'];
         }
 
         return $tokens;
@@ -59,37 +57,27 @@ class MongoDbProfilerStorage implements ProfilerStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function read($token)
+    protected function doRead($token)
     {
-        $profile = $this->getMongo()->findOne(array('_id' => $token, 'data' => array('$exists' => true)));
+        $result = $this->getMongo()->findOne(array('_id' => $token, 'data' => array('$exists' => true)), array('data'));
 
-        if (null !== $profile) {
-            $profile = $this->createProfileFromData($this->getData($profile));
-        }
-
-        return $profile;
+        return $result['data'];
     }
 
     /**
      * {@inheritdoc}
      */
-    public function write(Profile $profile)
+    protected function doWrite($token, array $data, array $indexedData)
     {
         $this->cleanup();
 
-        $record = array(
-            '_id' => $profile->getToken(),
-            'parent' => $profile->getParentToken(),
-            'data' => base64_encode(serialize($profile->getData())),
-            'collectors' => base64_encode(serialize($profile->getCollectors())),
-            'ip' => $profile->getIp(),
-            'method' => $profile->getMethod(),
-            'url' => $profile->getUrl(),
-            'time' => $profile->getTime(),
-            'status_code' => $profile->getStatusCode(),
+        $values = array(
+            '_id' => $token,
+            'indexed' => $indexedData,
+            'data' => array_filter($data, function ($v) { return !empty($v); }),
         );
 
-        $result = $this->getMongo()->update(array('_id' => $profile->getToken()), array_filter($record, function ($v) { return !empty($v); }), array('upsert' => true));
+        $result = $this->getMongo()->update(array('_id' => $token), $values, array('upsert' => true));
 
         return (bool) (isset($result['ok']) ? $result['ok'] : $result);
     }
@@ -118,125 +106,38 @@ class MongoDbProfilerStorage implements ProfilerStorageInterface
         return $this->mongo = $mongo->selectCollection($database, $collection);
     }
 
-    /**
-     * @param array $data
-     *
-     * @return Profile
-     */
-    protected function createProfileFromData(array $data)
-    {
-        $profile = $this->getProfile($data);
-
-        if ($data['parent']) {
-            $parent = $this->getMongo()->findOne(array('_id' => $data['parent'], 'data' => array('$exists' => true)));
-            if ($parent) {
-                $profile->setParent($this->getProfile($this->getData($parent)));
-            }
-        }
-
-        $profile->setChildren($this->readChildren($data['token']));
-
-        return $profile;
-    }
-
-    /**
-     * @param string $token
-     *
-     * @return Profile[] An array of Profile instances
-     */
-    protected function readChildren($token)
-    {
-        $profiles = array();
-
-        $cursor = $this->getMongo()->find(array('parent' => $token, 'data' => array('$exists' => true)));
-        foreach ($cursor as $d) {
-            $profiles[] = $this->getProfile($this->getData($d));
-        }
-
-        return $profiles;
-    }
-
     protected function cleanup()
     {
-        $this->getMongo()->remove(array('time' => array('$lt' => time() - $this->lifetime)));
+        $this->getMongo()->remove(array('indexed.time' => array('$lt' => time() - $this->lifetime)));
     }
 
     /**
-     * @param string $ip
-     * @param string $url
-     * @param string $method
-     * @param int    $start
-     * @param int    $end
+     * @param array $criteria
+     * @param int   $start
+     * @param int   $end
      *
      * @return array
      */
-    private function buildQuery($ip, $url, $method, $start, $end)
+    private function buildQuery(array $criteria, $start, $end)
     {
         $query = array();
-
-        if (!empty($ip)) {
-            $query['ip'] = $ip;
-        }
-
-        if (!empty($url)) {
-            $query['url'] = $url;
-        }
-
-        if (!empty($method)) {
-            $query['method'] = $method;
+        foreach ($criteria as $key => $value) {
+            $query['indexed.'.$key] = $value;
         }
 
         if (!empty($start) || !empty($end)) {
-            $query['time'] = array();
+            $query['indexed.time'] = array();
         }
 
         if (!empty($start)) {
-            $query['time']['$gte'] = $start;
+            $query['indexed.time']['$gte'] = $start;
         }
 
         if (!empty($end)) {
-            $query['time']['$lte'] = $end;
+            $query['indexed.time']['$lte'] = $end;
         }
 
         return $query;
-    }
-
-    /**
-     * @param array $data
-     *
-     * @return array
-     */
-    private function getData(array $data)
-    {
-        return array(
-            'token' => $data['_id'],
-            'parent' => isset($data['parent']) ? $data['parent'] : null,
-            'ip' => isset($data['ip']) ? $data['ip'] : null,
-            'method' => isset($data['method']) ? $data['method'] : null,
-            'url' => isset($data['url']) ? $data['url'] : null,
-            'time' => isset($data['time']) ? $data['time'] : null,
-            'data' => isset($data['data']) ? $data['data'] : array(),
-            'collectors' => isset($data['collectors']) ? $data['collectors'] : array(),
-            'status_code' => isset($data['status_code']) ? $data['status_code'] : null,
-        );
-    }
-
-    /**
-     * @param array $data
-     *
-     * @return Profile
-     */
-    protected function getProfile(array $data)
-    {
-        $profile = new Profile($data['token']);
-        $profile->setIp($data['ip']);
-        $profile->setMethod($data['method']);
-        $profile->setUrl($data['url']);
-        $profile->setTime($data['time']);
-        $profile->setCollectors(unserialize(base64_decode($data['collectors'])));
-        $profile->setData(unserialize(base64_decode($data['data'])));
-
-        return $profile;
     }
 
     /**

@@ -36,11 +36,41 @@ class HttpProfiler extends AbstractProfiler
     }
 
     /**
+     * Finds profiler tokens for the given criteria.
+     *
+     * @param string $ip     The IP
+     * @param string $url    The URL
+     * @param string $limit  The maximum number of tokens to return
+     * @param string $method The request method
+     * @param string $start  The start date to search from
+     * @param string $end    The end date to search to
+     *
+     * @return array An array of tokens
+     *
+     * @see http://php.net/manual/en/datetime.formats.php for the supported date/time formats
+     */
+    public function find($ip, $url, $limit, $method, $start, $end)
+    {
+        $criteria = array();
+        if (!empty($ip)) {
+            $criteria['ip'] = $ip;
+        }
+        if (!empty($url)) {
+            $criteria['url'] = $url;
+        }
+        if (!empty($method)) {
+            $criteria['method'] = $method;
+        }
+
+        return $this->findBy($criteria, $limit, $start, $end);
+    }
+
+    /**
      * Loads the Profile for the given Response.
      *
      * @param Response $response A Response instance
      *
-     * @return Profile A Profile instance
+     * @return ProfileInterface A Profile instance
      */
     public function loadFromResponse(Response $response)
     {
@@ -51,34 +81,24 @@ class HttpProfiler extends AbstractProfiler
         return $this->load($token);
     }
 
-    /**
-     * Collects data for the given Response.
-     *
-     * @return Profile|null A Profile instance or null if the profiler is disabled
-     */
-    public function profile()
+    protected function createProfile()
     {
-        if ( null === $this->requestStack->getCurrentRequest() ) {
+        if (null === ($request = $this->requestStack->getCurrentRequest())) {
             return;
         }
 
-        return parent::profile();
-    }
-
-    protected function createProfile()
-    {
-        $request = $this->requestStack->getCurrentRequest();
-        if ( !isset($this->responses[$request]) ) {
+        if (!isset($this->responses[$request])) {
             return;
         }
         $response = $this->responses[$request];
 
-        $profile = new Profile(substr(hash('sha256', uniqid(mt_rand(), true)), 0, 6));
-        $profile->setTime(time());
-        $profile->setUrl($request->getUri());
-        $profile->setIp($request->getClientIp());
-        $profile->setMethod($request->getMethod());
-        $profile->setStatusCode($response->getStatusCode());
+        $profile = new HttpProfile(
+            $this->generateToken(),
+            $request->getClientIp(),
+            $request->getUri(),
+            $request->getMethod(),
+            $response->getStatusCode()
+        );
 
         $response->headers->set('X-Debug-Token', $profile->getToken());
 

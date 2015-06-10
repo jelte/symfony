@@ -11,6 +11,8 @@
 
 namespace Symfony\Component\Profiler\Tests\Storage;
 
+use Symfony\Component\Profiler\Encoder\ConsoleProfileEncoder;
+use Symfony\Component\Profiler\Encoder\HttpProfileEncoder;
 use Symfony\Component\Profiler\Storage\SqliteProfilerStorage;
 
 class SqliteProfilerStorageTest extends AbstractProfilerStorageTest
@@ -24,7 +26,9 @@ class SqliteProfilerStorageTest extends AbstractProfilerStorageTest
         if (file_exists(self::$dbFile)) {
             @unlink(self::$dbFile);
         }
-        self::$storage = new SqliteProfilerStorage('sqlite:'.self::$dbFile);
+        self::$storage = new SqliteProfilerStorage('sqlite:'.self::$dbFile, '', '', 86400);
+        self::$storage->addEncoder(new HttpProfileEncoder());
+        self::$storage->addEncoder(new ConsoleProfileEncoder());
     }
 
     public static function tearDownAfterClass()

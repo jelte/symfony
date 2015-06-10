@@ -12,10 +12,10 @@
 namespace Symfony\Component\HttpKernel\Tests\Profiler;
 
 use Symfony\Component\Profiler\DataCollector\RuntimeDataCollectorInterface;
-use Symfony\Component\Profiler\Profile;
 use Symfony\Component\Profiler\DataCollector\AbstractDataCollector;
 use Symfony\Component\Profiler\ProfileData\AbstractProfileData;
-use Symfony\Component\Profiler\Storage\MongoDbProfilerStorage;
+use Symfony\Component\HttpKernel\Profiler\MongoDbProfilerStorage;
+use Symfony\Component\HttpKernel\Profiler\Profile;
 
 class DummyMongoDbProfilerStorage extends MongoDbProfilerStorage
 {

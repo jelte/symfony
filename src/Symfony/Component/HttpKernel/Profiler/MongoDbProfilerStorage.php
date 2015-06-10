@@ -11,6 +11,7 @@
 
 namespace Symfony\Component\HttpKernel\Profiler;
 
+use Symfony\Component\Profiler\Encoder\HttpProfileEncoder;
 use Symfony\Component\Profiler\Storage\MongoDbProfilerStorage as BaseMongoDbProfilerStorage;
 
 /**
@@ -18,23 +19,33 @@ use Symfony\Component\Profiler\Storage\MongoDbProfilerStorage as BaseMongoDbProf
  *
  * @deprecated since 2.8, to be removed in 3.0. Use Symfony\Component\Profiler\Storage\MongoDbProfilerStorage instead.
  */
-class MongoDbProfilerStorage extends BaseMongoDbProfilerStorage
+class MongoDbProfilerStorage extends BaseMongoDbProfilerStorage implements ProfilerStorageInterface
 {
     /**
-     * @param array $data
-     *
-     * @return Profile
+     * {@inheritdoc}
      */
-    protected function getProfile(array $data)
+    public function __construct($dsn, $username = '', $password = '', $lifetime = 86400)
     {
-        $profile = new Profile($data['token']);
-        $profile->setIp($data['ip']);
-        $profile->setMethod($data['method']);
-        $profile->setUrl($data['url']);
-        $profile->setTime($data['time']);
-        $profile->setCollectors(unserialize(base64_decode($data['collectors'])));
-        $profile->setData(unserialize(base64_decode($data['data'])));
+        parent::__construct($dsn, $username, $password, $lifetime);
+        $this->addEncoder(new HttpProfileEncoder());
+    }
 
-        return $profile;
+    /**
+     * {@inheritdoc}
+     */
+    public function find($ip, $url, $limit, $method, $start = null, $end = null)
+    {
+        $criteria = array();
+
+        if ( !empty($ip) ) {
+            $criteria['ip'] = $ip;
+        }
+        if ( !empty($url) ) {
+            $criteria['url'] = $url;
+        }
+        if ( !empty($method) ) {
+            $criteria['method'] = $method;
+        }
+        return parent::findBy($criteria, $limit, $start, $end);
     }
 }

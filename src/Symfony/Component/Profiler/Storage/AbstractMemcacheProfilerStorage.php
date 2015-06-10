@@ -11,15 +11,13 @@
 
 namespace Symfony\Component\Profiler\Storage;
 
-use Symfony\Component\Profiler\Profile;
-
 /**
  * Base Memcache storage for profiling information in a Memcache.
  *
  * @author Andrej Hudec <pulzarraider@gmail.com>
  * @author Jelte Steijaert <jelte@khepri.be>
  */
-abstract class AbstractMemcacheProfilerStorage implements ProfilerStorageInterface
+abstract class AbstractMemcacheProfilerStorage extends AbstractProfilerStorage
 {
     const TOKEN_PREFIX = 'sf_profiler_';
 
@@ -30,11 +28,9 @@ abstract class AbstractMemcacheProfilerStorage implements ProfilerStorageInterfa
      * Constructor.
      *
      * @param string $dsn      A data source name
-     * @param string $username
-     * @param string $password
      * @param int    $lifetime The lifetime to use for the purge
      */
-    public function __construct($dsn, $username = '', $password = '', $lifetime = 86400)
+    public function __construct($dsn, $lifetime = 86400)
     {
         $this->dsn = $dsn;
         $this->lifetime = (int) $lifetime;
@@ -43,7 +39,7 @@ abstract class AbstractMemcacheProfilerStorage implements ProfilerStorageInterfa
     /**
      * {@inheritdoc}
      */
-    public function find($ip, $url, $limit, $method, $start = null, $end = null)
+    public function findBy(array $criteria, $limit, $start = null, $end = null)
     {
         $indexName = $this->getIndexName();
 
@@ -64,33 +60,22 @@ abstract class AbstractMemcacheProfilerStorage implements ProfilerStorageInterfa
                 continue;
             }
 
-            $values = explode("\t", $item, 7);
-            list($itemToken, $itemIp, $itemMethod, $itemUrl, $itemTime, $itemParent) = $values;
-            $statusCode = isset($values[6]) ? $values[6] : null;
+            $values = json_decode($item, true);
+            $time = (int) $values['time'];
 
-            $itemTime = (int) $itemTime;
-
-            if ($ip && false === strpos($itemIp, $ip) || $url && false === strpos($itemUrl, $url) || $method && false === strpos($itemMethod, $method)) {
+            if (!empty($start) && $time < $start) {
                 continue;
             }
 
-            if (!empty($start) && $itemTime < $start) {
+            if (!empty($end) && $time > $end) {
                 continue;
             }
 
-            if (!empty($end) && $itemTime > $end) {
+            if (!$this->validateCriteria($values, $criteria)) {
                 continue;
             }
 
-            $result[$itemToken] = array(
-                'token' => $itemToken,
-                'ip' => $itemIp,
-                'method' => $itemMethod,
-                'url' => $itemUrl,
-                'time' => $itemTime,
-                'parent' => $itemParent,
-                'status_code' => $statusCode,
-            );
+            $result[$values['token']] = $values;
             --$limit;
         }
 
@@ -103,6 +88,17 @@ abstract class AbstractMemcacheProfilerStorage implements ProfilerStorageInterfa
         });
 
         return $result;
+    }
+
+    private function validateCriteria($values, $criteria)
+    {
+        foreach ($criteria as $key => $value) {
+            if (false === strpos($values[$key], $value)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -137,54 +133,28 @@ abstract class AbstractMemcacheProfilerStorage implements ProfilerStorageInterfa
     /**
      * {@inheritdoc}
      */
-    public function read($token)
+    protected function doRead($token)
     {
         if (empty($token)) {
             return false;
         }
 
-        $profile = $this->getValue($this->getItemName($token));
-
-        if (false !== $profile) {
-            $profile = $this->createProfileFromData($token, $profile);
-        }
-
-        return $profile;
+        return $this->getValue($this->getItemName($token));
     }
 
     /**
      * {@inheritdoc}
      */
-    public function write(Profile $profile)
+    protected function doWrite($token, array $data, array $indexedData)
     {
-        $data = array(
-            'token' => $profile->getToken(),
-            'parent' => $profile->getParentToken(),
-            'children' => array_map(function ($p) { return $p->getToken(); }, $profile->getChildren()),
-            'data' => $profile->getData(),
-            'collectors' => $profile->getCollectors(),
-            'ip' => $profile->getIp(),
-            'method' => $profile->getMethod(),
-            'url' => $profile->getUrl(),
-            'time' => $profile->getTime(),
-        );
+        $profileIndexed = false !== $this->getValue($this->getItemName($token));
 
-        $profileIndexed = false !== $this->getValue($this->getItemName($profile->getToken()));
-
-        if ($this->setValue($this->getItemName($profile->getToken()), $data, $this->lifetime)) {
+        if ($this->setValue($this->getItemName($data['token']), $data, $this->lifetime)) {
             if (!$profileIndexed) {
                 // Add to index
                 $indexName = $this->getIndexName();
 
-                $indexRow = implode("\t", array(
-                    $profile->getToken(),
-                    $profile->getIp(),
-                    $profile->getMethod(),
-                    $profile->getUrl(),
-                    $profile->getTime(),
-                    $profile->getParentToken(),
-                    $profile->getStatusCode(),
-                ))."\n";
+                $indexRow = json_encode($indexedData)."\n";
 
                 return $this->appendValue($indexName, $indexRow, $this->lifetime);
             }
@@ -234,39 +204,6 @@ abstract class AbstractMemcacheProfilerStorage implements ProfilerStorageInterfa
      * @return bool
      */
     abstract protected function appendValue($key, $value, $expiration = 0);
-
-    protected function createProfileFromData($token, $data, $parent = null)
-    {
-        $profile = new Profile($token);
-        $profile->setIp($data['ip']);
-        $profile->setMethod($data['method']);
-        $profile->setUrl($data['url']);
-        $profile->setTime($data['time']);
-        $profile->setCollectors($data['collectors']);
-        $profile->setData($data['data']);
-
-        if (!$parent && $data['parent']) {
-            $parent = $this->read($data['parent']);
-        }
-
-        if ($parent) {
-            $profile->setParent($parent);
-        }
-
-        foreach ($data['children'] as $token) {
-            if (!$token) {
-                continue;
-            }
-
-            if (!$childProfileData = $this->getValue($this->getItemName($token))) {
-                continue;
-            }
-
-            $profile->addChild($this->createProfileFromData($token, $childProfileData, $profile));
-        }
-
-        return $profile;
-    }
 
     /**
      * Get item name.

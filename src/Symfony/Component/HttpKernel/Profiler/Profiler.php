@@ -18,8 +18,8 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpKernel\DataCollector\DataCollectorInterface;
 use Symfony\Component\HttpKernel\DataCollector\LateDataCollectorInterface;
 use Symfony\Component\Profiler\HttpProfiler;
-use Symfony\Component\Profiler\Storage\ProfilerStorageInterface;
-use Symfony\Component\Profiler\Profile as BaseProfile;
+use Symfony\Component\Profiler\Storage\ProfilerStorageInterface as BaseProfilerStorageInterface;
+use Symfony\Component\Profiler\ProfileInterface;
 
 /**
  * Profiler.
@@ -36,7 +36,7 @@ class Profiler extends HttpProfiler
      * @param ProfilerStorageInterface $storage A ProfilerStorageInterface instance
      * @param LoggerInterface          $logger  A LoggerInterface instance
      */
-    public function __construct(ProfilerStorageInterface $storage, LoggerInterface $logger = null)
+    public function __construct(BaseProfilerStorageInterface $storage, LoggerInterface $logger = null)
     {
         parent::__construct(new RequestStack(), $storage, $logger);
     }
@@ -80,11 +80,11 @@ class Profiler extends HttpProfiler
     /**
      * Saves a Profile.
      *
-     * @param BaseProfile $profile A Profile instance
+     * @param ProfileInterface $profile A Profile instance
      *
      * @return bool
      */
-    public function save(BaseProfile $profile)
+    public function save(ProfileInterface $profile)
     {
         foreach ( $profile->getCollectors() as $collector ) {
             if ($collector instanceof LateDataCollectorInterface) {

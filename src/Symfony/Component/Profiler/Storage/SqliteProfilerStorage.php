@@ -11,7 +11,6 @@
 
 namespace Symfony\Component\Profiler\Storage;
 
-
 /**
  * SqliteProfilerStorage stores profiling information in a SQLite database.
  *
@@ -41,11 +40,8 @@ class SqliteProfilerStorage extends AbstractPdoProfilerStorage
             }
 
             $db->exec('PRAGMA temp_store=MEMORY; PRAGMA journal_mode=MEMORY;');
-            $db->exec('CREATE TABLE IF NOT EXISTS sf_profiler_data (token STRING, data STRING, collectors STRING, ip STRING, method STRING, url STRING, time INTEGER, parent STRING, created_at INTEGER, status_code INTEGER)');
+            $db->exec('CREATE TABLE IF NOT EXISTS sf_profiler_data (token STRING, data STRING, collectors STRING, children STRING, _class STRING, time INTEGER, parent STRING, created_at INTEGER)');
             $db->exec('CREATE INDEX IF NOT EXISTS data_created_at ON sf_profiler_data (created_at)');
-            $db->exec('CREATE INDEX IF NOT EXISTS data_ip ON sf_profiler_data (ip)');
-            $db->exec('CREATE INDEX IF NOT EXISTS data_method ON sf_profiler_data (method)');
-            $db->exec('CREATE INDEX IF NOT EXISTS data_url ON sf_profiler_data (url)');
             $db->exec('CREATE INDEX IF NOT EXISTS data_parent ON sf_profiler_data (parent)');
             $db->exec('CREATE UNIQUE INDEX IF NOT EXISTS data_token ON sf_profiler_data (token)');
 
@@ -53,6 +49,22 @@ class SqliteProfilerStorage extends AbstractPdoProfilerStorage
         }
 
         return $this->db;
+    }
+
+    protected function ensureColumnsExist(array $data, array $indexedData)
+    {
+        $result = $this->fetch($this->db, 'PRAGMA table_info(sf_profiler_data)');
+        $columns = array();
+        foreach ($result as $column) {
+            $columns[] = $column['name'];
+        }
+        foreach (array_diff(array_keys($data), $columns) as $column) {
+            $type = is_int($data[$column]) ? 'integer' : 'string';
+            $this->db->exec(sprintf('ALTER TABLE sf_profiler_data ADD COLUMN %s %s', $column, strtoupper($type)));
+            if (isset($indexedData[$column])) {
+                $this->db->exec(sprintf('CREATE INDEX IF NOT EXISTS data_%s ON sf_profiler_data (%s)', $column, $column));
+            }
+        }
     }
 
     protected function exec($db, $query, array $args = array())
@@ -98,37 +110,27 @@ class SqliteProfilerStorage extends AbstractPdoProfilerStorage
     /**
      * {@inheritdoc}
      */
-    protected function buildCriteria($ip, $url, $start, $end, $limit, $method)
+    protected function buildCriteria(array $criteria, $start, $end, $limit)
     {
-        $criteria = array();
+        $dbCriteria = array();
         $args = array();
 
-        if ($ip = preg_replace('/[^\d\.]/', '', $ip)) {
-            $criteria[] = 'ip LIKE :ip';
-            $args[':ip'] = '%'.$ip.'%';
-        }
-
-        if ($url) {
-            $criteria[] = 'url LIKE :url ESCAPE "\"';
-            $args[':url'] = '%'.addcslashes($url, '%_\\').'%';
-        }
-
-        if ($method) {
-            $criteria[] = 'method = :method';
-            $args[':method'] = $method;
+        foreach ($criteria as $key => $value) {
+            $dbCriteria[] = $key.' LIKE :'.$key.' ESCAPE "\"';
+            $args[':'.$key] = '%'.addcslashes($value, '%_\\').'%';
         }
 
         if (!empty($start)) {
-            $criteria[] = 'time >= :start';
+            $dbCriteria[] = 'time >= :start';
             $args[':start'] = $start;
         }
 
         if (!empty($end)) {
-            $criteria[] = 'time <= :end';
+            $dbCriteria[] = 'time <= :end';
             $args[':end'] = $end;
         }
 
-        return array($criteria, $args);
+        return array($dbCriteria, $args);
     }
 
     protected function close($db)
