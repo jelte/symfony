@@ -25,15 +25,11 @@ use Symfony\Component\Profiler\DataCollector\RuntimeDataCollectorInterface;
 class DoctrineDataCollector extends AbstractDataCollector implements RuntimeDataCollectorInterface
 {
     private $registry;
-    private $connections;
-    private $managers;
     private $loggers = array();
 
     public function __construct(ManagerRegistry $registry)
     {
         $this->registry = $registry;
-        $this->connections = $registry->getConnectionNames();
-        $this->managers = $registry->getManagerNames();
     }
 
     /**
@@ -57,7 +53,7 @@ class DoctrineDataCollector extends AbstractDataCollector implements RuntimeData
             $queries[$name] = $this->sanitizeQueries($name, $logger->queries);
         }
 
-        return new DoctrineProfileData($queries, $this->registry->getConnections(), $this->registry->getManagers());
+        return new DoctrineProfileData($queries, $this->registry->getConnectionNames(), $this->registry->getManagerNames());
     }
 
     /**
