@@ -14,12 +14,12 @@ namespace Symfony\Component\Profiler\ProfileData;
 use Symfony\Component\Profiler\ProfileData\Util\ValueExporter;
 
 /**
- * Class AbstractProfileData
+ * AbstractProfileData.
  *
  * @author Jelte Steijaert <jelte@khepri.be>
  */
-abstract class AbstractProfileData implements ProfileDataInterface, \Serializable {
-
+abstract class AbstractProfileData implements ProfileDataInterface, \Serializable
+{
     protected $data;
 
     /**

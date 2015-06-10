@@ -12,12 +12,15 @@
 namespace Symfony\Component\Profiler\ProfileData;
 
 /**
- * Class ConfigData
+ * ConfigData.
  *
  * @author Jelte Steijaert <jelte@khepri.be>
  */
 class ConfigData extends AbstractProfileData
 {
+    /**
+     * @return string
+     */
     public function getApplicationName()
     {
         return $this->data['app_name'];
@@ -39,26 +42,6 @@ class ConfigData extends AbstractProfileData
     }
 
     /**
-     * Gets the Symfony version.
-     *
-     * @return string The Symfony version
-     */
-    public function getSymfonyVersion()
-    {
-        return $this->data['symfony_version'];
-    }
-
-    /**
-     * Returns the state of the current Symfony release.
-     *
-     * @return string One of: unknown, dev, stable, eom, eol
-     */
-    public function getSymfonyState()
-    {
-        return $this->data['symfony_state'];
-    }
-
-    /**
      * Gets the PHP version.
      *
      * @return string The PHP version
@@ -66,36 +49,6 @@ class ConfigData extends AbstractProfileData
     public function getPhpVersion()
     {
         return $this->data['php_version'];
-    }
-
-    /**
-     * Gets the application name.
-     *
-     * @return string The application name
-     */
-    public function getAppName()
-    {
-        return $this->data['name'];
-    }
-
-    /**
-     * Gets the environment.
-     *
-     * @return string The environment
-     */
-    public function getEnv()
-    {
-        return $this->data['env'];
-    }
-
-    /**
-     * Returns true if the debug is enabled.
-     *
-     * @return bool true if debug is enabled, false otherwise
-     */
-    public function isDebug()
-    {
-        return $this->data['debug'];
     }
 
     /**
@@ -168,11 +121,6 @@ class ConfigData extends AbstractProfileData
         return $this->hasApc() || $this->hasZendOpcache() || $this->hasEAccelerator() || $this->hasXCache() || $this->hasWinCache();
     }
 
-    public function getBundles()
-    {
-        return $this->data['bundles'];
-    }
-
     /**
      * Gets the PHP SAPI name.
      *
@@ -181,5 +129,65 @@ class ConfigData extends AbstractProfileData
     public function getSapiName()
     {
         return $this->data['sapi_name'];
+    }
+
+    /**
+     * Gets the application name.
+     *
+     * @return string The application name
+     */
+    public function getAppName()
+    {
+        return 'n/a';
+    }
+
+    /**
+     * Gets the Symfony version.
+     *
+     * @return string The Symfony version
+     */
+    public function getSymfonyVersion()
+    {
+        return 'n/a';
+    }
+
+    /**
+     * Returns the state of the current Symfony release.
+     *
+     * @return string One of: unknown, dev, stable, eom, eol
+     */
+    public function getSymfonyState()
+    {
+        return 'n/a';
+    }
+
+    /**
+     * Gets the environment.
+     *
+     * @return string The environment
+     */
+    public function getEnv()
+    {
+        return 'n/a';
+    }
+
+    /**
+     * Returns true if the debug is enabled.
+     *
+     * @return bool true if debug is enabled, false otherwise
+     */
+    public function isDebug()
+    {
+        return 'n/a';
+    }
+
+    /**
+     * Return the collection of loaded bundles.
+     *
+     * @return array
+     */
+    public function getBundles()
+    {
+        return array();
     }
 }

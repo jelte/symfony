@@ -9,14 +9,14 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Profiler\Tests\DataCollector;
+namespace Symfony\Component\HttpKernel\Tests\Profiler;
 
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 use Symfony\Component\HttpKernel\HttpKernel;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\KernelEvents;
-use Symfony\Component\Profiler\DataCollector\RequestDataCollector;
+use Symfony\Component\HttpKernel\Profiler\RequestDataCollector;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -65,7 +65,6 @@ class RequestDataCollectorTest extends \PHPUnit_Framework_TestCase
         $this->assertSame('', $data->getContent());
     }
 
-
     public function testCollectNoResponseForRequest()
     {
         $requestStack = new RequestStack();
@@ -98,7 +97,7 @@ class RequestDataCollectorTest extends \PHPUnit_Framework_TestCase
                 '"Regular" callable',
                 array($this, 'testControllerInspection'),
                 array(
-                    'class' => 'Symfony\Component\Profiler\Tests\DataCollector\RequestDataCollectorTest',
+                    'class' => 'Symfony\Component\HttpKernel\Tests\Profiler\RequestDataCollectorTest',
                     'method' => 'testControllerInspection',
                     'file' => __FILE__,
                     'line' => $r1->getStartLine(),
@@ -107,26 +106,28 @@ class RequestDataCollectorTest extends \PHPUnit_Framework_TestCase
 
             array(
                 'Closure',
-                function () { return 'foo'; },
+                function () {
+                    return 'foo';
+                },
                 array(
-                    'class' => __NAMESPACE__.'\{closure}',
+                    'class' => __NAMESPACE__ . '\{closure}',
                     'method' => null,
                     'file' => __FILE__,
-                    'line' => __LINE__ - 5,
+                    'line' => __LINE__ - 7,
                 ),
             ),
 
             array(
                 'Static callback as string',
-                'Symfony\Component\Profiler\Tests\DataCollector\RequestDataCollectorTest::staticControllerMethod',
-                'Symfony\Component\Profiler\Tests\DataCollector\RequestDataCollectorTest::staticControllerMethod',
+                'Symfony\Component\HttpKernel\Tests\Profiler\RequestDataCollectorTest::staticControllerMethod',
+                'Symfony\Component\HttpKernel\Tests\Profiler\RequestDataCollectorTest::staticControllerMethod',
             ),
 
             array(
                 'Static callable with instance',
                 array($this, 'staticControllerMethod'),
                 array(
-                    'class' => 'Symfony\Component\Profiler\Tests\DataCollector\RequestDataCollectorTest',
+                    'class' => 'Symfony\Component\HttpKernel\Tests\Profiler\RequestDataCollectorTest',
                     'method' => 'staticControllerMethod',
                     'file' => __FILE__,
                     'line' => $r2->getStartLine(),
@@ -135,9 +136,9 @@ class RequestDataCollectorTest extends \PHPUnit_Framework_TestCase
 
             array(
                 'Static callable with class name',
-                array('Symfony\Component\Profiler\Tests\DataCollector\RequestDataCollectorTest', 'staticControllerMethod'),
+                array('Symfony\Component\HttpKernel\Tests\Profiler\RequestDataCollectorTest', 'staticControllerMethod'),
                 array(
-                    'class' => 'Symfony\Component\Profiler\Tests\DataCollector\RequestDataCollectorTest',
+                    'class' => 'Symfony\Component\HttpKernel\Tests\Profiler\RequestDataCollectorTest',
                     'method' => 'staticControllerMethod',
                     'file' => __FILE__,
                     'line' => $r2->getStartLine(),
@@ -148,7 +149,7 @@ class RequestDataCollectorTest extends \PHPUnit_Framework_TestCase
                 'Callable with instance depending on __call()',
                 array($this, 'magicMethod'),
                 array(
-                    'class' => 'Symfony\Component\Profiler\Tests\DataCollector\RequestDataCollectorTest',
+                    'class' => 'Symfony\Component\HttpKernel\Tests\Profiler\RequestDataCollectorTest',
                     'method' => 'magicMethod',
                     'file' => 'n/a',
                     'line' => 'n/a',
@@ -157,9 +158,9 @@ class RequestDataCollectorTest extends \PHPUnit_Framework_TestCase
 
             array(
                 'Callable with class name depending on __callStatic()',
-                array('Symfony\Component\Profiler\Tests\DataCollector\RequestDataCollectorTest', 'magicMethod'),
+                array('Symfony\Component\HttpKernel\Tests\Profiler\RequestDataCollectorTest', 'magicMethod'),
                 array(
-                    'class' => 'Symfony\Component\Profiler\Tests\DataCollector\RequestDataCollectorTest',
+                    'class' => 'Symfony\Component\HttpKernel\Tests\Profiler\RequestDataCollectorTest',
                     'method' => 'magicMethod',
                     'file' => 'n/a',
                     'line' => 'n/a',
@@ -170,7 +171,7 @@ class RequestDataCollectorTest extends \PHPUnit_Framework_TestCase
                 'Invokable controller',
                 $this,
                 array(
-                    'class' => 'Symfony\Component\Profiler\Tests\DataCollector\RequestDataCollectorTest',
+                    'class' => 'Symfony\Component\HttpKernel\Tests\Profiler\RequestDataCollectorTest',
                     'method' => null,
                     'file' => __FILE__,
                     'line' => $r3->getStartLine(),

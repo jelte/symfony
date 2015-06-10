@@ -12,7 +12,6 @@
 namespace Symfony\Component\Profiler\Tests\DataCollector;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
-use Symfony\Component\HttpKernel\Bundle\BundleInterface;
 use Symfony\Component\Profiler\DataCollector\ConfigDataCollector;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Kernel;
@@ -23,25 +22,19 @@ class ConfigDataCollectorTest extends \PHPUnit_Framework_TestCase
 {
     public function testCollect()
     {
-        $kernel = new KernelForTest('test', true);
-        $requestStack = new RequestStack();
-        $requestStack->push(new Request());
         $c = new ConfigDataCollector('Test Suite', 'test');
-        $c->setKernel($kernel);
         $profileData = $c->collect();
-        $this->assertInstanceOf('Symfony\Component\Profiler\ProfileData\ConfigData',$profileData);
+        $this->assertInstanceOf('Symfony\Component\Profiler\ProfileData\ConfigData', $profileData);
 
         $this->assertSame('Test Suite', $profileData->getApplicationName());
         $this->assertSame('test', $profileData->getApplicationVersion());
-        $this->assertSame('test', $profileData->getEnv());
-        $this->assertTrue($profileData->isDebug());
-        $this->assertSame('testkernel', $profileData->getAppName());
+        $this->assertSame('n/a', $profileData->getEnv());
+        $this->assertSame('n/a', $profileData->isDebug());
+        $this->assertSame('n/a', $profileData->getAppName());
         $this->assertSame(PHP_VERSION, $profileData->getPhpVersion());
-        $this->assertSame(Kernel::VERSION, $profileData->getSymfonyVersion());
-        $this->assertSame($this->currentSymfonyState(), $profileData->getSymfonyState());
-        if ( '' !== Kernel::EXTRA_VERSION ) {
-            $this->assertSame(strtolower(Kernel::EXTRA_VERSION), $profileData->getSymfonyState());
-        }
+        $this->assertSame('n/a', $profileData->getSymfonyVersion());
+        $this->assertSame('n/a', $profileData->getSymfonyState());
+
 
         $this->assertNull($profileData->getToken());
 
@@ -74,55 +67,8 @@ class ConfigDataCollectorTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(extension_loaded('Zend OPcache') && ini_get('opcache.enable'), $profileData->hasZendOpcache());
         $this->assertEquals(php_sapi_name(), $profileData->getSapiName());
 
-        $this->assertCount(1, $profileData->getBundles());
+        $this->assertEmpty($profileData->getBundles());
 
         $this->assertEquals('config', $c->getName());
     }
-
-    private function currentSymfonyState()
-    {
-        $now = new \DateTime();
-        $eom = \DateTime::createFromFormat('m/Y', Kernel::END_OF_MAINTENANCE)->modify('last day of this month');
-        $eol = \DateTime::createFromFormat('m/Y', Kernel::END_OF_LIFE)->modify('last day of this month');
-
-        if ($now > $eol) {
-            $versionState = 'eol';
-        } elseif ($now > $eom) {
-            $versionState = 'eom';
-        } elseif ('' !== Kernel::EXTRA_VERSION) {
-            $versionState = strtolower(Kernel::EXTRA_VERSION);
-        } else {
-            $versionState = 'stable';
-        }
-
-        return $versionState;
-    }
-}
-
-class KernelForTest extends Kernel
-{
-    public function getName()
-    {
-        return 'testkernel';
-    }
-
-    public function registerBundles()
-    {
-    }
-
-    public function getBundles()
-    {
-        return array(
-            new BundleForTest()
-        );
-    }
-
-    public function registerContainerConfiguration(LoaderInterface $loader)
-    {
-    }
-}
-
-class BundleForTest extends Bundle
-{
-
 }

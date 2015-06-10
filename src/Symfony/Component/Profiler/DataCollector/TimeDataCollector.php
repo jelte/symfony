@@ -11,12 +11,6 @@
 
 namespace Symfony\Component\Profiler\DataCollector;
 
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
-use Symfony\Component\HttpKernel\KernelEvents;
-use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Stopwatch\Stopwatch;
 use Symfony\Component\Profiler\ProfileData\TimeData;
 
@@ -28,15 +22,16 @@ use Symfony\Component\Profiler\ProfileData\TimeData;
  */
 class TimeDataCollector extends AbstractDataCollector implements LateDataCollectorInterface
 {
-    private $requestStack;
-    private $kernel;
     private $stopwatch;
-    private $startTime;
+    protected $startTime;
 
-    public function __construct(RequestStack $requestStack, KernelInterface $kernel = null, Stopwatch $stopwatch = null)
+    /**
+     * Constructor.
+     *
+     * @param Stopwatch|null $stopwatch
+     */
+    public function __construct(Stopwatch $stopwatch = null)
     {
-        $this->requestStack = $requestStack;
-        $this->kernel = $kernel;
         $this->stopwatch = $stopwatch;
         $this->startTime = 0;
     }
@@ -46,14 +41,6 @@ class TimeDataCollector extends AbstractDataCollector implements LateDataCollect
      */
     public function lateCollect()
     {
-        $request = $this->requestStack->getCurrentRequest();
-
-        if (null !== $this->kernel) {
-            $this->startTime = $this->kernel->getStartTime();
-        } else if (  null !== $request  ) {
-            $this->startTime = $request->server->get('REQUEST_TIME_FLOAT', $request->server->get('REQUEST_TIME'));
-        }
-
         $events = array();
         if (null !== $this->stopwatch && $this->token) {
             $events = $this->stopwatch->getSectionEvents($this->token);

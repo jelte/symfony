@@ -21,7 +21,7 @@ use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
  *
  * @author Fabien Potencier <fabien@symfony.com>
  *
- * @deprecated since 2.8, to be removed in 3.0. Use Symfony\Component\Profiler\DataCollector\RouterDataCollector instead.
+ * @deprecated since 2.8, to be removed in 3.0. Use Symfony\Component\HttpKernel\Profiler\RouterDataCollector instead.
  */
 class RouterDataCollector extends DataCollector
 {

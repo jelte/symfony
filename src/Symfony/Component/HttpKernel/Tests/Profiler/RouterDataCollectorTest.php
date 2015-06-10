@@ -1,8 +1,6 @@
 <?php
 
-
-namespace Symfony\Component\Profiler\Tests\DataCollector;
-
+namespace Symfony\Component\HttpKernel\Tests\Profiler;
 
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\Cookie;
@@ -15,7 +13,7 @@ use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 use Symfony\Component\HttpKernel\HttpKernel;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\KernelEvents;
-use Symfony\Component\Profiler\DataCollector\RouterDataCollector;
+use Symfony\Component\HttpKernel\Profiler\RouterDataCollector;
 
 class RouterDataCollectorTest extends \PHPUnit_Framework_TestCase
 {
@@ -36,7 +34,7 @@ class RouterDataCollectorTest extends \PHPUnit_Framework_TestCase
 
         $data = $c->collect();
 
-        $this->assertInstanceof('Symfony\Component\Profiler\ProfileData\RouterData', $data);
+        $this->assertInstanceof('Symfony\Component\HttpKernel\Profiler\RouterData', $data);
         $this->assertFalse($data->getRedirect());
     }
 
@@ -57,7 +55,7 @@ class RouterDataCollectorTest extends \PHPUnit_Framework_TestCase
         $this->injectController($c, array($this, 'testCollectRedirectResponse'), $request);
 
         $data = $c->collect();
-        $this->assertInstanceof('Symfony\Component\Profiler\ProfileData\RouterData', $data);
+        $this->assertInstanceof('Symfony\Component\HttpKernel\Profiler\RouterData', $data);
         $this->assertSame('n/a', $data->getTargetRoute());
         $this->assertSame('dummy', $data->getTargetUrl());
         $this->assertTrue($data->getRedirect());

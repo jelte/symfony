@@ -12,7 +12,7 @@
 namespace Symfony\Component\Profiler\DataCollector;
 
 /**
- * Interface DataCollectorInterface
+ * DataCollectorInterface.
  *
  * @author Jelte Steijaert <jelte@khepri.be>
  */

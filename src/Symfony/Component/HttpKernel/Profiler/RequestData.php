@@ -9,22 +9,22 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Profiler\ProfileData;
+namespace Symfony\Component\HttpKernel\Profiler;
 
 use Symfony\Component\HttpFoundation\HeaderBag;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
+use Symfony\Component\Profiler\ProfileData\AbstractProfileData;
 
 /**
- * Class RequestData
+ * Class RequestData.
  *
  * @author Jelte Steijaert <jelte@khepri.be>
  */
 class RequestData extends AbstractProfileData
 {
-
     public function __construct(Request $request, Response $response, $controller = null)
     {
         $responseHeaders = $response->headers->all();
@@ -109,7 +109,7 @@ class RequestData extends AbstractProfileData
             $data['request_request']['_password'] = '******';
         }
 
-        if ( null !== $controller ) {
+        if (null !== $controller) {
             if (is_array($controller)) {
                 try {
                     $r = new \ReflectionMethod($controller[0], $controller[1]);
@@ -147,11 +147,10 @@ class RequestData extends AbstractProfileData
                     'line' => $r->getStartLine(),
                 );
             } else {
-                $data['controller'] = (string)$controller ?: 'n/a';
+                $data['controller'] = (string) $controller ?: 'n/a';
             }
         }
         parent::__construct($data);
-
     }
 
     public function getPathInfo()

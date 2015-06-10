@@ -21,7 +21,7 @@ use Symfony\Component\EventDispatcher\Debug\TraceableEventDispatcherInterface;
  *
  * @author Fabien Potencier <fabien@symfony.com>
  *
- * @deprecated since 2.8, to be removed in 3.0. Use Symfony\Component\Profiler\DataCollector\EventDataCollector instead.
+ * @deprecated since 2.8, to be removed in 3.0. Use Symfony\Component\EventDispatcher\Profiler\EventDataCollector instead.
  */
 class EventDataCollector extends DataCollector implements LateDataCollectorInterface
 {

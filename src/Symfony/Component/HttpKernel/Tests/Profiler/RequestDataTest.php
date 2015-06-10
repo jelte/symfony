@@ -1,26 +1,21 @@
 <?php
 
-
-namespace Symfony\Component\Profiler\Tests\ProfileData;
-
+namespace Symfony\Component\HttpKernel\Tests\Profiler;
 
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBag;
-use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\MetadataBag;
 use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
-use Symfony\Component\Profiler\DataCollector\RequestDataCollector;
+use Symfony\Component\HttpKernel\Profiler\RequestDataCollector;
 
 class RequestDataTest extends \PHPUnit_Framework_TestCase
 {
-
     public function testMaskPasswords()
     {
-
         $requestStack = new RequestStack();
         $c = new RequestDataCollector($requestStack);
 
@@ -32,7 +27,7 @@ class RequestDataTest extends \PHPUnit_Framework_TestCase
             array(),
             array(
                 'PHP_AUTH_PW' => 'test',
-                'HTTP_php-auth-pw' => 'test'
+                'HTTP_php-auth-pw' => 'test',
             )
         );
         $requestStack->push($request);
@@ -84,9 +79,8 @@ class RequestDataTest extends \PHPUnit_Framework_TestCase
         $requestStack = new RequestStack();
         $c = new RequestDataCollector($requestStack);
 
-
         /** @var \Symfony\Component\Routing\Route $route */
-        $route = $this->getMockBuilder('Symfony\Component\Profiler\Tests\ProfileData\DummyRouteInterface')
+        $route = $this->getMockBuilder('Symfony\Component\Routing\Route')
             ->disableOriginalConstructor()
             ->getMock();
         $route->expects($this->once())->method('getPath')->willReturn('/test');

@@ -11,8 +11,6 @@
 
 namespace Symfony\Component\Profiler\DataCollector;
 
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Profiler\ProfileData\MemoryData;
 
 /**
@@ -25,6 +23,9 @@ class MemoryDataCollector extends AbstractDataCollector implements LateDataColle
 {
     private $memoryLimit;
 
+    /**
+     * Constructor.
+     */
     public function __construct()
     {
         $this->memoryLimit = ini_get('memory_limit');

@@ -12,13 +12,12 @@
 namespace Symfony\Component\Profiler\ProfileData;
 
 /**
- * Class TimeData
+ * TimeData.
  *
  * @author Jelte Steijaert <jelte@khepri.be>
  */
 class TimeData implements ProfileDataInterface
 {
-    private $token;
     private $startTime;
     private $events;
 

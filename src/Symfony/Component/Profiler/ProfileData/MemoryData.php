@@ -12,13 +12,12 @@
 namespace Symfony\Component\Profiler\ProfileData;
 
 /**
- * Class MemoryData
+ * MemoryData.
  *
  * @author Jelte Steijaert <jelte@khepri.be>
  */
 class MemoryData implements ProfileDataInterface
 {
-
     private $memory;
     private $memoryLimit;
 

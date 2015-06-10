@@ -12,9 +12,9 @@
 namespace Symfony\Component\Profiler\DataCollector;
 
 /**
- * DataCollector.
+ * AbstractDataCollector.
  *
- * Children of this class must store the collected data in the data property.
+ * Children of this class must implement the RuntimeDataCollectorInterface or LateDataCollectorInterface.
  *
  * @author Fabien Potencier <fabien@symfony.com>
  * @author Bernhard Schussek <bschussek@symfony.com>
@@ -22,8 +22,14 @@ namespace Symfony\Component\Profiler\DataCollector;
  */
 abstract class AbstractDataCollector implements DataCollectorInterface
 {
+    /** @var string Token of the active profile. */
     protected $token;
 
+    /**
+     * Set the Token of the active profile.
+     *
+     * @param $token
+     */
     public function setToken($token)
     {
         $this->token = $token;

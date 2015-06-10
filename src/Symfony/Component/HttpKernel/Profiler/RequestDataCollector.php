@@ -9,18 +9,15 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Profiler\DataCollector;
+namespace Symfony\Component\HttpKernel\Profiler;
 
-use Symfony\Component\HttpFoundation\ParameterBag;
-use Symfony\Component\HttpFoundation\HeaderBag;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\Profiler\ProfileData\RequestData;
+use Symfony\Component\Profiler\DataCollector\AbstractDataCollector;
+use Symfony\Component\Profiler\DataCollector\RuntimeDataCollectorInterface;
 
 /**
  * RequestDataCollector.
@@ -75,7 +72,7 @@ class RequestDataCollector extends AbstractDataCollector implements EventSubscri
     {
         return array(
             KernelEvents::CONTROLLER => 'onKernelController',
-            KernelEvents::RESPONSE => array('onKernelException', -50)
+            KernelEvents::RESPONSE => array('onKernelResponse', -50),
         );
     }
 

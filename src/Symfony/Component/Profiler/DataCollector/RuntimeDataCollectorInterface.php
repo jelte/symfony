@@ -10,11 +10,12 @@
  * file that was distributed with this source code.
  */
 
-
 namespace Symfony\Component\Profiler\DataCollector;
 
+use Symfony\Component\Profiler\ProfileData\ProfileDataInterface;
+
 /**
- * Interface RuntimeDataCollectorInterface
+ * RuntimeDataCollectorInterface.
  *
  * @author Jelte Steijaert <jelte@khepri.be>
  */
@@ -22,6 +23,8 @@ interface RuntimeDataCollectorInterface
 {
     /**
      * Collects data when profiler is triggered.
+     *
+     * @return ProfileDataInterface
      */
     public function collect();
 }

@@ -12,12 +12,13 @@
 namespace Symfony\Component\Profiler\DataCollector;
 
 /**
- * Class DataCollectorTrait
+ * Class DataCollectorTrait.
+ *
+ *
  * @codeCoverageIgnore till 3.0
  */
 trait DataCollectorTrait
 {
-
     /**
      * @var DataCollectorInterface[]
      */

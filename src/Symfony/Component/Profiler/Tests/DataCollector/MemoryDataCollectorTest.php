@@ -12,8 +12,6 @@
 namespace Symfony\Component\Profiler\Tests\DataCollector;
 
 use Symfony\Component\Profiler\DataCollector\MemoryDataCollector;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Profiler\ProfileData\MemoryData;
 
 class MemoryDataCollectorTest extends \PHPUnit_Framework_TestCase
@@ -33,7 +31,7 @@ class MemoryDataCollectorTest extends \PHPUnit_Framework_TestCase
     /** @dataProvider getBytesConversionTestData */
     public function testBytesConversion($limit, $bytes)
     {
-        $data = new MemoryData(1,1);
+        $data = new MemoryData(1, 1);
         $method = new \ReflectionMethod($data, 'convertToBytes');
         $method->setAccessible(true);
         $this->assertEquals($bytes, $method->invoke($data, $limit));

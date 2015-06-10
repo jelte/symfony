@@ -12,7 +12,7 @@
 namespace Symfony\Component\Profiler\ProfileData;
 
 /**
- * Interface ProfileDataInterface
+ * ProfileDataInterface.
  *
  * @author Jelte Steijaert <jelte@khepri.be>
  */

@@ -9,13 +9,13 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Profiler\ProfileData;
+namespace Symfony\Component\HttpKernel\Profiler;
 
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Class RouterData
+ * Class RouterData.
  *
  * @author Jelte Steijaert <jelte@khepri.be>
  */
@@ -27,7 +27,7 @@ class RouterData
 
     public function __construct(Response $response, $route = null)
     {
-        if ( $response instanceof RedirectResponse ) {
+        if ($response instanceof RedirectResponse) {
             $this->redirect = true;
             $this->url = $response->getTargetUrl();
         }
