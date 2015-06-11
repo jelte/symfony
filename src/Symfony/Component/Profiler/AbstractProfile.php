@@ -212,6 +212,8 @@ abstract class AbstractProfile implements ProfileInterface
     }
 
     /**
+     * Retrieve data for a specific section.
+     *
      * @param $name
      *
      * @return ProfileDataInterface
@@ -219,14 +221,24 @@ abstract class AbstractProfile implements ProfileInterface
     public function get($name)
     {
         if (!isset($this->data[$name])) {
+            if (isset($this->collectors[$name])) {
+                return $this->collectors[$name];
+            }
             throw new \InvalidArgumentException(sprintf('ProfileData "%s" does not exist.', $name));
         }
 
         return $this->data[$name];
     }
 
+    /**
+     * Check of data exists for a specific section.
+     *
+     * @param $name
+     *
+     * @return bool
+     */
     public function has($name)
     {
-        return isset($this->data[$name]);
+        return isset($this->data[$name]) || isset($this->collectors[$name]);
     }
 }

@@ -16,6 +16,8 @@ use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Profiler\Storage\ProfilerStorageInterface;
+use Symfony\Component\HttpKernel\DataCollector\DataCollectorInterface;
+use Symfony\Component\HttpKernel\DataCollector\LateDataCollectorInterface;
 
 /**
  * Profiler.
@@ -79,6 +81,29 @@ class HttpProfiler extends AbstractProfiler
         }
 
         return $this->load($token);
+    }
+
+    public function profile()
+    {
+        $profile = parent::profile();
+
+        if ( null !== $profile ) {
+            foreach ($this->all() as $collector) {
+                if ($collector instanceof DataCollectorInterface) {
+                    @trigger_error(sprintf("%s implementing %s will is deprecated since version 2.8 and support for it will be removed in 3.0.", get_class($collector), 'Symfony\Component\HttpKernel\DataCollector\DataCollectorInterface'), E_USER_DEPRECATED);
+
+                    $clone = clone $collector;
+                    if (!($clone instanceof LateDataCollectorInterface)) {
+                        $request = $this->requestStack->getCurrentRequest();
+                        $clone->collect($request, $this->responses[$request]);
+                    }
+                    // we need to clone for sub-requests
+                    $profile->addCollector($clone);
+                }
+            }
+        }
+
+        return $profile;
     }
 
     protected function createProfile()

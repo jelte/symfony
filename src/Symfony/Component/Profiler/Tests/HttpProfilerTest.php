@@ -12,7 +12,8 @@
 namespace Symfony\Component\Profiler\Tests;
 
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\HttpKernel\Profiler\RequestDataCollector;
+use Symfony\Component\HttpKernel\DataCollector\RouterDataCollector;
+use Symfony\Component\HttpKernel\DataCollector\TimeDataCollector;
 use Symfony\Component\Profiler\DataCollector\MemoryDataCollector;
 use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
@@ -24,6 +25,7 @@ use Symfony\Component\Profiler\Storage\SqliteProfilerStorage;
 use Symfony\Component\Profiler\HttpProfiler;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Profiler\RequestDataCollector;
 
 class HttpProfilerTest extends \PHPUnit_Framework_TestCase
 {
@@ -50,6 +52,31 @@ class HttpProfilerTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($requestCollector, $profiler->get('request'));
 
         $profiler->get('memory');
+    }
+
+    public function testDeprecatedCollectors()
+    {
+        $requestStack = new RequestStack();
+        $request = new Request();
+        $requestStack->push($request);
+
+        $profiler = new HttpProfiler($requestStack, $this->storage);
+
+        $profiler->addResponse($request, new Response());
+        $timeCollector = new TimeDataCollector();
+
+        $profiler->set(array($timeCollector));
+
+        $this->assertTrue($profiler->has('time'));
+
+        $this->assertCount(1, $profiler->all());
+
+        $this->assertEquals($timeCollector, $profiler->get('time'));
+
+        $profile = $profiler->profile();
+
+        $this->assertTrue($profile->has('time'));
+        $this->assertEquals($timeCollector, $profile->get('time'));
     }
 
     public function testCollect()
