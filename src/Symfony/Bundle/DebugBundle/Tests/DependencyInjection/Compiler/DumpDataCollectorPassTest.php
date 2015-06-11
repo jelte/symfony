@@ -25,12 +25,12 @@ class DumpDataCollectorPassTest extends \PHPUnit_Framework_TestCase
         $container->addCompilerPass(new DumpDataCollectorPass());
         $container->setParameter('templating.helper.code.file_link_format', 'file-link-format');
 
-        $definition = new Definition('Symfony\Component\HttpKernel\DataCollector\DumpDataCollector', array(null, null, null, null));
+        $definition = new Definition('Symfony\Component\VarDumper\Profiler\DumpDataCollector', array(null, null, null, null, null));
         $container->setDefinition('data_collector.dump', $definition);
 
         $container->compile();
 
-        $this->assertSame('file-link-format', $definition->getArgument(1));
+        $this->assertSame('file-link-format', $definition->getArgument(2));
     }
 
     public function testProcessWithoutFileLinkFormatParameter()
@@ -38,7 +38,7 @@ class DumpDataCollectorPassTest extends \PHPUnit_Framework_TestCase
         $container = new ContainerBuilder();
         $container->addCompilerPass(new DumpDataCollectorPass());
 
-        $definition = new Definition('Symfony\Component\HttpKernel\DataCollector\DumpDataCollector', array(null, null, null, null));
+        $definition = new Definition('Symfony\Component\VarDumper\Profiler\DumpDataCollector', array(null, null, null, null, null));
         $container->setDefinition('data_collector.dump', $definition);
 
         $container->compile();
@@ -52,13 +52,13 @@ class DumpDataCollectorPassTest extends \PHPUnit_Framework_TestCase
         $container->addCompilerPass(new DumpDataCollectorPass());
         $requestStack = new RequestStack();
 
-        $definition = new Definition('Symfony\Component\HttpKernel\DataCollector\DumpDataCollector', array(null, null, null, $requestStack));
+        $definition = new Definition('Symfony\Component\VarDumper\Profiler\DumpDataCollector', array($requestStack, null, null, null, null));
         $container->setDefinition('data_collector.dump', $definition);
         $container->setParameter('web_profiler.debug_toolbar.mode', WebDebugToolbarListener::ENABLED);
 
         $container->compile();
 
-        $this->assertSame($requestStack, $definition->getArgument(3));
+        $this->assertSame($requestStack, $definition->getArgument(0));
     }
 
     public function testProcessWithToolbarDisabled()
@@ -66,7 +66,7 @@ class DumpDataCollectorPassTest extends \PHPUnit_Framework_TestCase
         $container = new ContainerBuilder();
         $container->addCompilerPass(new DumpDataCollectorPass());
 
-        $definition = new Definition('Symfony\Component\HttpKernel\DataCollector\DumpDataCollector', array(null, null, null, new RequestStack()));
+        $definition = new Definition('Symfony\Component\VarDumper\Profiler\DumpDataCollector', array(new RequestStack(), null, null, null, null));
         $container->setDefinition('data_collector.dump', $definition);
         $container->setParameter('web_profiler.debug_toolbar.mode', WebDebugToolbarListener::DISABLED);
 
@@ -80,7 +80,7 @@ class DumpDataCollectorPassTest extends \PHPUnit_Framework_TestCase
         $container = new ContainerBuilder();
         $container->addCompilerPass(new DumpDataCollectorPass());
 
-        $definition = new Definition('Symfony\Component\HttpKernel\DataCollector\DumpDataCollector', array(null, null, null, new RequestStack()));
+        $definition = new Definition('Symfony\Component\VarDumper\Profiler\DumpDataCollector', array(new RequestStack(), null, null, null, null));
         $container->setDefinition('data_collector.dump', $definition);
 
         $container->compile();
