@@ -53,7 +53,7 @@ class DoctrineDataCollector extends AbstractDataCollector implements RuntimeData
             $queries[$name] = $this->sanitizeQueries($name, $logger->queries);
         }
 
-        return new DoctrineProfileData($queries, $this->registry->getConnectionNames(), $this->registry->getManagerNames());
+        return new DoctrineProfileData($queries, $this->registry);
     }
 
     /**
