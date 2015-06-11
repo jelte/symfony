@@ -44,6 +44,9 @@ class KernelDataCollectorTest extends \PHPUnit_Framework_TestCase
         $this->assertCount(1, $profileData->getBundles());
 
         $this->assertEquals('config', $c->getName());
+        $unserializedProfileData = unserialize(serialize($profileData));
+
+        $this->assertCount(1, $unserializedProfileData->getBundles());
     }
 
     private function currentSymfonyState()

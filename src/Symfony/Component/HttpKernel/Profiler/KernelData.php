@@ -86,6 +86,32 @@ class KernelData extends ConfigData
         return $this->bundles;
     }
 
+    public function serialize()
+    {
+        return serialize(array(
+            'data' => $this->data,
+            'name' => $this->name,
+            'version' => $this->version,
+            'env' => $this->env,
+            'debug' => $this->debug,
+            'state' => $this->state,
+            'bundles' => $this->bundles
+        ));
+    }
+
+    public function unserialize($data)
+    {
+        $values = unserialize($data);
+
+        $this->data = $values['data'];
+        $this->name = $values['name'];
+        $this->version = $values['version'];
+        $this->env = $values['env'];
+        $this->debug = $values['debug'];
+        $this->state = $values['state'];
+        $this->bundles = $values['bundles'];
+    }
+
     /**
      * Tries to retrieve information about the current Symfony version.
      *
