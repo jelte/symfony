@@ -10,12 +10,12 @@
             <argument type="service" id="var_dumper.cloner" />
         </service>
 
-        <service id="data_collector.dump" class="Symfony\Component\HttpKernel\DataCollector\DumpDataCollector">
+        <service id="data_collector.dump" class="Symfony\Component\VarDumper\Profiler\DumpDataCollector">
             <tag name="data_collector" id="dump" template="@Debug/Profiler/dump.html.twig" />
+            <argument type="service" id="request_stack" />
             <argument type="service" id="debug.stopwatch" on-invalid="ignore" />
             <argument>null</argument><!-- %templating.helper.code.file_link_format% -->
             <argument>%kernel.charset%</argument>
-            <argument type="service" id="request_stack" />
             <argument>null</argument><!-- var_dumper.cli_dumper when debug.dump_destination is set -->
         </service>
 

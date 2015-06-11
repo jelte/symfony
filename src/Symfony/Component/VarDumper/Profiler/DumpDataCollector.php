@@ -100,7 +100,6 @@ class DumpDataCollector extends AbstractDataCollector implements DataDumperInter
                 $line = $trace[$i]['line'];
 
                 while (++$i < 7) {
-                    var_dump($trace[$i]);
                     if (isset($trace[$i]['function'], $trace[$i]['file']) && empty($trace[$i]['class']) && 0 !== strpos($trace[$i]['function'], 'call_user_func')) {
                         $file = $trace[$i]['file'];
                         $line = $trace[$i]['line'];
