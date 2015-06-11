@@ -54,31 +54,6 @@ class HttpProfilerTest extends \PHPUnit_Framework_TestCase
         $profiler->get('memory');
     }
 
-    public function testDeprecatedCollectors()
-    {
-        $requestStack = new RequestStack();
-        $request = new Request();
-        $requestStack->push($request);
-
-        $profiler = new HttpProfiler($requestStack, $this->storage);
-
-        $profiler->addResponse($request, new Response());
-        $timeCollector = new TimeDataCollector();
-
-        $profiler->set(array($timeCollector));
-
-        $this->assertTrue($profiler->has('time'));
-
-        $this->assertCount(1, $profiler->all());
-
-        $this->assertEquals($timeCollector, $profiler->get('time'));
-
-        $profile = $profiler->profile();
-
-        $this->assertTrue($profile->has('time'));
-        $this->assertEquals($timeCollector, $profile->get('time'));
-    }
-
     public function testCollect()
     {
         $requestStack = new RequestStack();
@@ -206,6 +181,33 @@ class HttpProfilerTest extends \PHPUnit_Framework_TestCase
 
         $this->assertTrue($profiler->save($profile));
         $this->assertFalse($profiler->save($profile));
+    }
+
+    public function testDeprecatedCollectors()
+    {
+        $this->markTestSkipped('Test for deprecated DataCollectors.');
+
+        $requestStack = new RequestStack();
+        $request = new Request();
+        $requestStack->push($request);
+
+        $profiler = new HttpProfiler($requestStack, $this->storage);
+
+        $profiler->addResponse($request, new Response());
+        $timeCollector = new TimeDataCollector();
+
+        $profiler->set(array($timeCollector));
+
+        $this->assertTrue($profiler->has('time'));
+
+        $this->assertCount(1, $profiler->all());
+
+        $this->assertEquals($timeCollector, $profiler->get('time'));
+
+        $profile = $profiler->profile();
+
+        $this->assertTrue($profile->has('time'));
+        $this->assertEquals($timeCollector, $profile->get('time'));
     }
 
     protected function setUp()
