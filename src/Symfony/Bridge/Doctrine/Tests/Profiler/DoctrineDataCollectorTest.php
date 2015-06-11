@@ -123,6 +123,11 @@ class DoctrineDataCollectorTest extends \PHPUnit_Framework_TestCase
 
         $registry = $this->getMock('Doctrine\Common\Persistence\ManagerRegistry');
         $registry
+            ->expects($this->any())
+            ->method('getManagers')
+            ->will($this->returnValue(array()));
+
+        $registry
                 ->expects($this->any())
                 ->method('getConnectionNames')
                 ->will($this->returnValue(array('default' => 'doctrine.dbal.default_connection')));
