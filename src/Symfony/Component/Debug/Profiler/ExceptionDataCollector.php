@@ -44,7 +44,7 @@ class ExceptionDataCollector extends AbstractDataCollector implements RuntimeDat
     }
 
     /**
-     * Handles the onException event.
+     * Handles the onKernelTerminate event.
      *
      * @param Event $event
      */
