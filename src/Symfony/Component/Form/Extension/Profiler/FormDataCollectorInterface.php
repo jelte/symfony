@@ -9,43 +9,21 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Form\Extension\DataCollector;
+namespace Symfony\Component\Form\Extension\Profiler;
 
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
-use Symfony\Component\HttpKernel\DataCollector\DataCollectorInterface;
+use Symfony\Component\Profiler\DataCollector\DataCollectorInterface;
 
 /**
  * Collects and structures information about forms.
  *
- * @since  2.4
+ * @since  2.8
  * @author Bernhard Schussek <bschussek@gmail.com>
- *
- * @deprecated since 2.8 and will be removed in 3.0. Use Symfony\Component\Form\Extension\Profiler\FormDataCollectorInterface instead.
  */
-interface FormDataCollectorInterface extends DataCollectorInterface
+interface FormDataCollectorInterface extends DataCollectorInterface, EventSubscriberInterface
 {
-    /**
-     * Stores configuration data of the given form and its children.
-     *
-     * @param FormInterface $form A root form
-     */
-    public function collectConfiguration(FormInterface $form);
-
-    /**
-     * Stores the default data of the given form and its children.
-     *
-     * @param FormInterface $form A root form
-     */
-    public function collectDefaultData(FormInterface $form);
-
-    /**
-     * Stores the submitted data of the given form and its children.
-     *
-     * @param FormInterface $form A root form
-     */
-    public function collectSubmittedData(FormInterface $form);
-
     /**
      * Stores the view variables of the given form view and its children.
      *
@@ -60,16 +38,6 @@ interface FormDataCollectorInterface extends DataCollectorInterface
      * @param FormView      $view A view object
      */
     public function associateFormWithView(FormInterface $form, FormView $view);
-
-    /**
-     * Assembles the data collected about the given form and its children as
-     * a tree-like data structure.
-     *
-     * The result can be queried using {@link getData()}.
-     *
-     * @param FormInterface $form A root form
-     */
-    public function buildPreliminaryFormTree(FormInterface $form);
 
     /**
      * Assembles the data collected about the given form and its children as
@@ -93,11 +61,4 @@ interface FormDataCollectorInterface extends DataCollectorInterface
      * @param FormView      $view A root view
      */
     public function buildFinalFormTree(FormInterface $form, FormView $view);
-
-    /**
-     * Returns all collected data.
-     *
-     * @return array
-     */
-    public function getData();
 }

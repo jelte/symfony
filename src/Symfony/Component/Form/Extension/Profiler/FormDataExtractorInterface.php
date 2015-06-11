@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Form\Extension\DataCollector;
+namespace Symfony\Component\Form\Extension\Profiler;
 
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
@@ -19,8 +19,6 @@ use Symfony\Component\Form\FormView;
  *
  * @since  2.4
  * @author Bernhard Schussek <bschussek@gmail.com>
- *
- * @deprecated since 2.8 and will be removed in 3.0. Use Symfony\Component\Form\Extension\Profiler\FormDataExtractorInterface instead.
  */
 interface FormDataExtractorInterface
 {

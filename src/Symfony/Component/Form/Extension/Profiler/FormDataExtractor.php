@@ -9,11 +9,11 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Form\Extension\DataCollector;
+namespace Symfony\Component\Form\Extension\Profiler;
 
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
-use Symfony\Component\HttpKernel\DataCollector\Util\ValueExporter;
+use Symfony\Component\Profiler\ProfileData\Util\ValueExporter;
 use Symfony\Component\Validator\ConstraintViolationInterface;
 
 /**
@@ -21,8 +21,6 @@ use Symfony\Component\Validator\ConstraintViolationInterface;
  *
  * @since  2.4
  * @author Bernhard Schussek <bschussek@gmail.com>
- *
- * @deprecated since 2.8 and will be removed in 3.0. Use Symfony\Component\Form\Extension\Profiler\FormDataExtractor instead.
  */
 class FormDataExtractor implements FormDataExtractorInterface
 {
@@ -33,6 +31,8 @@ class FormDataExtractor implements FormDataExtractorInterface
 
     /**
      * Constructs a new data extractor.
+     *
+     * @param ValueExporter|null $valueExporter
      */
     public function __construct(ValueExporter $valueExporter = null)
     {

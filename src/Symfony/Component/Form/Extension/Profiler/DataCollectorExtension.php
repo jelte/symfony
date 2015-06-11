@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Form\Extension\DataCollector;
+namespace Symfony\Component\Form\Extension\Profiler;
 
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Form\AbstractExtension;
@@ -20,8 +20,6 @@ use Symfony\Component\Form\AbstractExtension;
  * @since  2.4
  * @author Robert Schönthal <robert.schoenthal@gmail.com>
  * @author Bernhard Schussek <bschussek@gmail.com>
- *
- * @deprecated since 2.8 and will be removed in 3.0. Use Symfony\Component\Form\Extension\Profiler\DataCollectorExtension instead.
  */
 class DataCollectorExtension extends AbstractExtension
 {

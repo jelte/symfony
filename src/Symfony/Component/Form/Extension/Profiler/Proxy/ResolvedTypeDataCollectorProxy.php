@@ -9,9 +9,9 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Form\Extension\DataCollector\Proxy;
+namespace Symfony\Component\Form\Extension\Profiler\Proxy;
 
-use Symfony\Component\Form\Extension\DataCollector\FormDataCollectorInterface;
+use Symfony\Component\Form\Extension\Profiler\FormDataCollectorInterface;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\Form\FormInterface;
@@ -23,8 +23,6 @@ use Symfony\Component\Form\ResolvedFormTypeInterface;
  *
  * @since  2.4
  * @author Bernhard Schussek <bschussek@gmail.com>
- *
- * @deprecated since 2.8 and will be removed in 3.0. Use Symfony\Component\Form\Extension\Profiler\Proxy\ResolvedTypeDataCollectorProxy instead.
  */
 class ResolvedTypeDataCollectorProxy implements ResolvedFormTypeInterface
 {
