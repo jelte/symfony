@@ -25,8 +25,22 @@ class EventData implements ProfileDataInterface
 
     public function __construct(array $calledListeners = array(), array $notCalledListeners = array())
     {
-        $this->calledListeners = $calledListeners;
-        $this->notCalledListeners = $notCalledListeners;
+        $this->calledListeners = $this->flatten($calledListeners);
+        $this->notCalledListeners = $this->flatten($notCalledListeners);
+    }
+
+    private function flatten(array $data)
+    {
+        $flattened = array();
+        foreach ( $data as $eventName => $listeners ) {
+            foreach ( $listeners as $priority => $l ) {
+                foreach ($l as $pretty => $listener) {
+                    $flattened[$eventName . '.' . $pretty] = $listener;
+                }
+            }
+        }
+
+        return $flattened;
     }
 
     /**
