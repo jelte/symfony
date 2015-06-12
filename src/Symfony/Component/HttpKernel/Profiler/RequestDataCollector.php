@@ -72,7 +72,7 @@ class RequestDataCollector extends AbstractDataCollector implements EventSubscri
     {
         return array(
             KernelEvents::CONTROLLER => 'onKernelController',
-            KernelEvents::RESPONSE => array('onKernelResponse', -50),
+            KernelEvents::RESPONSE => 'onKernelResponse',
         );
     }
 

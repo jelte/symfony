@@ -88,7 +88,7 @@ class RouterDataCollector extends AbstractDataCollector implements EventSubscrib
     {
         return array(
             KernelEvents::CONTROLLER => 'onKernelController',
-            KernelEvents::RESPONSE => array('onKernelException', -50),
+            KernelEvents::RESPONSE => 'onKernelResponse',
         );
     }
 

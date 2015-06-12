@@ -58,7 +58,7 @@
         </service>
 
         <service id="data_collector.router" class="%data_collector.router.class%" >
-            <tag name="kernel.event_listener" event="kernel.controller" method="onKernelController"/>
+            <tag name="kernel.event_subscriber" />
             <tag name="data_collector" template="@WebProfiler/Collector/router.html.twig" id="router" priority="255" />
             <argument type="service" id="request_stack" on-invalid="ignore" />
         </service>

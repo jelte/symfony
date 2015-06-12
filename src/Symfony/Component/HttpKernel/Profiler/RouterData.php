@@ -13,13 +13,14 @@ namespace Symfony\Component\HttpKernel\Profiler;
 
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Profiler\ProfileData\ProfileDataInterface;
 
 /**
  * Class RouterData.
  *
  * @author Jelte Steijaert <jelte@khepri.be>
  */
-class RouterData
+class RouterData implements ProfileDataInterface
 {
     private $redirect = false;
     private $url;
