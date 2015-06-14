@@ -17,7 +17,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpKernel\DataCollector\DataCollectorInterface;
 use Symfony\Component\HttpKernel\DataCollector\LateDataCollectorInterface;
-use Symfony\Component\Profiler\HttpProfiler;
+use Symfony\Component\Profiler\Profiler as BaseProfiler;
 use Symfony\Component\Profiler\Storage\ProfilerStorageInterface as BaseProfilerStorageInterface;
 use Symfony\Component\Profiler\ProfileInterface;
 
@@ -28,19 +28,8 @@ use Symfony\Component\Profiler\ProfileInterface;
  *
  * @deprecated since 2.8, to be removed in 3.0. Use Symfony\Component\Profiler\HttpProfiler instead.
  */
-class Profiler extends HttpProfiler
+class Profiler extends BaseProfiler
 {
-    /**
-     * Constructor.
-     *
-     * @param ProfilerStorageInterface $storage A ProfilerStorageInterface instance
-     * @param LoggerInterface          $logger  A LoggerInterface instance
-     */
-    public function __construct(BaseProfilerStorageInterface $storage, LoggerInterface $logger = null)
-    {
-        parent::__construct(new RequestStack(), $storage, $logger);
-    }
-
     /**
      * Loads the Profile for the given Response.
      *
@@ -106,29 +95,15 @@ class Profiler extends HttpProfiler
      */
     public function collect(Request $request, Response $response, \Exception $exception = null)
     {
-        $this->requestStack->push($request);
+        $profile = $this->createProfile($request, $response);
 
-        if ( $profile = parent::profile() ) {
-            /** @var DataCollectorInterface $collector */
-            foreach ($this->all() as $collector) {
-                $collector->setToken($profile->getToken());
-                if ($collector instanceof DataCollectorInterface) {
-                    $collector->collect($request, $response, $exception);
-
-                    // we need to clone for sub-requests
-                    $profile->addCollector(clone $collector);
-                }
-            }
-        }
+        parent::profile($profile);
 
         return $profile;
     }
 
-    protected function createProfile()
+    protected function createProfile(Request $request, Response $response)
     {
-        $request = $this->requestStack->getCurrentRequest();
-        $response = $this->responses[$request];
-
         $profile = new Profile(substr(hash('sha256', uniqid(mt_rand(), true)), 0, 6));
         $profile->setTime(time());
         $profile->setUrl($request->getUri());
@@ -141,13 +116,13 @@ class Profiler extends HttpProfiler
         return $profile;
     }
 
-    public function profile()
+    public function profile(ProfileInterface $profile)
     {
         // Prevent the deprecation notice to be triggered all the time.
         // The onKernelRequest() method fires some logic only when the
         // RequestStack instance is not provided as a dependency.
         trigger_error('The '.__METHOD__.' method should not be used till version 3.0 as it does not support 2.x DataCollectors. Use the method collect instead.', E_USER_DEPRECATED);
 
-        return parent::profile();
+        return parent::profile($profile);
     }
 }

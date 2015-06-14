@@ -4,36 +4,25 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
-    <parameters>
-        <parameter key="profiler.class">Symfony\Component\Profiler\HttpProfiler</parameter>
-        <parameter key="profiler_listener.class">Symfony\Component\Profiler\EventListener\HttpProfilerListener</parameter>
-
-        <parameter key="console_profiler.class">Symfony\Component\Profiler\ConsoleProfiler</parameter>
-        <parameter key="console_profiler_listener.class">Symfony\Component\Profiler\EventListener\ConsoleProfilerListener</parameter>
-    </parameters>
-
     <services>
-        <service id="profiler" class="%profiler.class%">
+        <service id="profiler" class="Symfony\Component\Profiler\Profiler">
             <tag name="monolog.logger" channel="profiler" />
-            <argument type="service" id="request_stack" />
             <argument type="service" id="profiler.storage" />
             <argument type="service" id="logger" on-invalid="null" />
         </service>
 
-        <service id="console_profiler" class="%console_profiler.class%">
-            <tag name="monolog.logger" channel="console_profiler" />
-            <argument type="service" id="profiler.storage" />
-            <argument type="service" id="logger" on-invalid="null" />
-        </service>
 
         <service id="profiler.storage" class="" public="false">
             <argument>%profiler.storage.dsn%</argument>
             <argument>%profiler.storage.username%</argument>
             <argument>%profiler.storage.password%</argument>
             <argument>%profiler.storage.lifetime%</argument>
+            <call method="addEncoder">
+                <argument type="service" id="console_profiler_encoder" />
+            </call>
         </service>
 
-        <service id="profiler_listener" class="%profiler_listener.class%">
+        <service id="profiler_listener" class="Symfony\Component\Profiler\EventListener\HttpProfilerListener">
             <tag name="kernel.event_subscriber" />
             <argument type="service" id="profiler" />
             <argument type="service" id="request_stack" />
@@ -42,10 +31,12 @@
             <argument>%profiler_listener.only_master_requests%</argument>
         </service>
 
-        <service id="console_profiler_listener" class="%console_profiler_listener.class%">
+        <service id="console_profiler_listener" class="Symfony\Component\Profiler\EventListener\ConsoleProfilerListener">
             <tag name="kernel.event_subscriber" />
-            <argument type="service" id="console_profiler" />
+            <argument type="service" id="profiler" />
             <argument>%profiler_listener.only_exceptions%</argument>
         </service>
+
+        <service id="console_profiler_encoder" class="Symfony\Component\Profiler\Encoder\ConsoleProfileEncoder" />
     </services>
 </container>

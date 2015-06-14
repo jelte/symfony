@@ -79,7 +79,7 @@ abstract class AbstractProfileEncoder
      *
      * @return array
      */
-    protected function getIndexes()
+    public function getIndexes()
     {
         return array(
             'token',

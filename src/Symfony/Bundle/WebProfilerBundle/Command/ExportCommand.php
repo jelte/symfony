@@ -15,7 +15,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Profiler\HttpProfiler;
+use Symfony\Component\Profiler\Profiler;
 
 /**
  * Exports a profile.
@@ -26,7 +26,7 @@ class ExportCommand extends Command
 {
     private $profiler;
 
-    public function __construct(HttpProfiler $profiler = null)
+    public function __construct(Profiler $profiler = null)
     {
         $this->profiler = $profiler;
 

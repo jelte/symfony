@@ -15,17 +15,23 @@
             "homepage": "http://symfony.com/contributors"
         }
     ],
+    "repositories": [
+        {
+            "type": "git",
+            "url": "git@github.com:jelte/symfony"
+        }
+    ],
     "require": {
         "php": ">=5.3.9"
     },
     "require-dev": {
-        "symfony/dependency-injection": "~2.7",
-        "symfony/http-kernel": "~2.7",
-        "symfony/http-foundation": "~2.7",
-        "symfony/console": "~2.7",
-        "symfony/var-dumper": "~2.7",
-        "symfony/stopwatch": "~2.7",
-        "symfony/config": "~2.0",
+        "symfony/dependency-injection": "~2.8",
+        "symfony/http-kernel": "~2.8",
+        "symfony/http-foundation": "~2.8",
+        "symfony/console": "~2.8",
+        "symfony/var-dumper": "~2.8",
+        "symfony/stopwatch": "~2.8",
+        "symfony/config": "~2.8",
         "twig/twig": "~1.18"
     },
     "suggest": {

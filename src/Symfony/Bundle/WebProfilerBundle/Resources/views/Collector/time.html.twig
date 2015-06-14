@@ -81,9 +81,9 @@
 
     {% if profile.children|length %}
         {% for child in profile.children %}
-            {% set events = child.getcollector('time').events %}
+            {% set events = child.get('time').events %}
             <h3>
-                Sub-request "<a href="{{ path('_profiler', { 'token': child.token, 'panel': 'time' }) }}">{{ child.getcollector('request').requestattributes.get('_controller') }}</a>"
+                Sub-request "<a href="{{ path('_profiler', { 'token': child.token, 'panel': 'time' }) }}">{{ child.get('request').requestattributes.get('_controller') }}</a>"
                 <small> - {{ events.__section__.duration }} ms</small>
             </h3>
 
@@ -404,7 +404,7 @@
 {% if profile.children|length %}
                 ,
 {% for child in profile.children %}
-{{ dump_request_data(child.token, child, child.getcollector('time').events, collector.events.__section__.origin) }}{{ loop.last ? '' : ',' }}
+{{ dump_request_data(child.token, child, child.get('time').events, collector.events.__section__.origin) }}{{ loop.last ? '' : ',' }}
 {% endfor %}
 {% endif %}
             ]

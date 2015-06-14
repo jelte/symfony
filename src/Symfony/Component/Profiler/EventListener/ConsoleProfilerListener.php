@@ -14,8 +14,7 @@ namespace Symfony\Component\Profiler\EventListener;
 use Symfony\Component\Console\ConsoleEvents;
 use Symfony\Component\Console\Event\ConsoleExceptionEvent;
 use Symfony\Component\Console\Event\ConsoleTerminateEvent;
-use Symfony\Component\Profiler\ConsoleProfiler;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\Profiler\ConsoleProfile;
 
 /**
  * ProfilerListener collects data for the current request by listening to the kernel events.
@@ -23,25 +22,8 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  * @author Fabien Potencier <fabien@symfony.com>
  * @author Jelte Steijaert <jelte@khepri.be>
  */
-class ConsoleProfilerListener implements EventSubscriberInterface
+class ConsoleProfilerListener extends AbstractProfilerListener
 {
-    protected $profiler;
-    protected $onlyException;
-    protected $exception;
-
-    /**
-     * Constructor.
-     *
-     * @param ConsoleProfiler $profiler      A Profiler instance
-     * @param bool            $onlyException true if the profiler only collects data when an exception occurs, false otherwise
-     */
-    public function __construct(ConsoleProfiler $profiler, $onlyException = false)
-    {
-        $this->profiler = $profiler;
-        $this->onlyException = (bool) $onlyException;
-        $this->commands = new \SplObjectStorage();
-    }
-
     /**
      * Handles the onConsoleException event.
      *
@@ -49,7 +31,7 @@ class ConsoleProfilerListener implements EventSubscriberInterface
      */
     public function onConsoleException(ConsoleExceptionEvent $event)
     {
-        $this->exception = $event->getException();
+        $this->onException($event->getException());
     }
 
     /**
@@ -65,9 +47,7 @@ class ConsoleProfilerListener implements EventSubscriberInterface
 
         $this->exception = null;
 
-        $this->profiler->addCommand($event->getCommand(), $event->getInput(), $event->getExitCode());
-
-        $profile = $this->profiler->profile();
+        $profile = $this->profiler->profileCommand($event->getCommand(), $event->getInput(), $event->getExitCode());
 
         $this->profiler->save($profile);
     }

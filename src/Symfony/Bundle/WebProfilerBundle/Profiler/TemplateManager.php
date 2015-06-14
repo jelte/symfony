@@ -12,9 +12,8 @@
 namespace Symfony\Bundle\WebProfilerBundle\Profiler;
 
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Profiler\HttpProfiler;
-use Symfony\Component\Profiler\Profile;
 use Symfony\Component\Profiler\ProfileInterface;
+use Symfony\Component\Profiler\Profiler;
 
 /**
  * Profiler Templates Manager.
@@ -31,11 +30,11 @@ class TemplateManager
     /**
      * Constructor.
      *
-     * @param HttpProfiler      $profiler
+     * @param Profiler          $profiler
      * @param \Twig_Environment $twig
      * @param array             $templates
      */
-    public function __construct(HttpProfiler $profiler, \Twig_Environment $twig, array $templates)
+    public function __construct(Profiler $profiler, \Twig_Environment $twig, array $templates)
     {
         $this->profiler = $profiler;
         $this->twig = $twig;

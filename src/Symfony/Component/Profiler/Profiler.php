@@ -11,6 +11,13 @@
 
 namespace Symfony\Component\Profiler;
 
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\DataCollector\DataCollectorInterface as DeprecatedDataCollectorInterface;
+use Symfony\Component\HttpKernel\DataCollector\LateDataCollectorInterface as DeprecatedLateDataCollectorInterface;
 use Symfony\Component\Profiler\DataCollector\DataCollectorInterface;
 use Symfony\Component\Profiler\DataCollector\RuntimeDataCollectorInterface;
 use Symfony\Component\Profiler\DataCollector\LateDataCollectorInterface;
@@ -23,7 +30,7 @@ use Symfony\Component\Profiler\Storage\ProfilerStorageInterface;
  * @author Fabien Potencier <fabien@symfony.com>
  * @author Jelte Steijaert <jelte@khepri.be>
  */
-abstract class AbstractProfiler
+class Profiler
 {
     /**
      * @var DataCollectorInterface[]
@@ -49,7 +56,7 @@ abstract class AbstractProfiler
      * Constructor.
      *
      * @param ProfilerStorageInterface $storage A ProfilerStorageInterface instance
-     * @param LoggerInterface          $logger  A LoggerInterface instance
+     * @param LoggerInterface $logger A LoggerInterface instance
      */
     public function __construct(ProfilerStorageInterface $storage, LoggerInterface $logger = null)
     {
@@ -88,6 +95,22 @@ abstract class AbstractProfiler
     public function load($token)
     {
         return $this->storage->read($token);
+    }
+
+    /**
+     * Loads the Profile for the given Response.
+     *
+     * @param Response $response A Response instance
+     *
+     * @return ProfileInterface A Profile instance
+     */
+    public function loadFromResponse(Response $response)
+    {
+        if (!$token = $response->headers->get('X-Debug-Token')) {
+            return false;
+        }
+
+        return $this->load($token);
     }
 
     /**
@@ -139,7 +162,7 @@ abstract class AbstractProfiler
      *
      * @param string $data A data string as exported by the export() method
      *
-     * @return Profile A Profile instance
+     * @return ProfileInterface A Profile instance
      */
     public function import($data)
     {
@@ -157,10 +180,10 @@ abstract class AbstractProfiler
     /**
      * Finds profiler tokens for the given criteria.
      *
-     * @param array  $criteria The Criteria
-     * @param string $limit    The maximum number of tokens to return
-     * @param string $start    The start date to search from
-     * @param string $end      The end date to search to
+     * @param array $criteria The Criteria
+     * @param string $limit The maximum number of tokens to return
+     * @param string $start The start date to search from
+     * @param string $end The end date to search to
      *
      * @return array An array of tokens
      *
@@ -172,22 +195,75 @@ abstract class AbstractProfiler
     }
 
     /**
+     * Finds profiler tokens for the given criteria.
+     *
+     * @param string $ip The IP
+     * @param string $url The URL
+     * @param string $limit The maximum number of tokens to return
+     * @param string $method The request method
+     * @param string $start The start date to search from
+     * @param string $end The end date to search to
+     *
+     * @return array An array of tokens
+     *
+     * @see http://php.net/manual/en/datetime.formats.php for the supported date/time formats
+     * @deprecated since 2.8 and will be removed in 3.0 use Profiler::findBy instead
+     */
+    public function find($ip, $url, $limit, $method, $start, $end)
+    {
+        $criteria = array();
+        if (!empty($ip)) {
+            $criteria['ip'] = $ip;
+        }
+        if (!empty($url)) {
+            $criteria['url'] = $url;
+        }
+        if (!empty($method)) {
+            $criteria['method'] = $method;
+        }
+
+        return $this->findBy($criteria, $limit, $start, $end);
+    }
+
+    public function profileRequest(Request $request, Response $response)
+    {
+        if (!$this->enabled) {
+            return;
+        }
+
+        $profile = new HttpProfile(
+            $this->generateToken(),
+            $request->getClientIp(),
+            $request->getUri(),
+            $request->getMethod(),
+            $response->getStatusCode()
+        );
+
+        $response->headers->set('X-Debug-Token', $profile->getToken());
+
+        return $this->profile($profile, $request, $response);
+    }
+
+    public function profileCommand(Command $command, InputInterface $input, $exitCode)
+    {
+        if (!$this->enabled) {
+            return;
+        }
+
+        $profile = new ConsoleProfile($this->generateToken(), $command->getName(), $input->getArguments(), $input->getOptions(), $exitCode);
+
+        return $this->profile($profile);
+    }
+
+    /**
      * Collects data.
      *
-     * @return ProfileInterface|null A Profile instance or null if the profiler is disabled
+     * @param ProfileInterface $profile
+     *
+     * @return ProfileInterface
      */
-    public function profile()
+    public function profile(ProfileInterface $profile, Request $request = null, Response $response = null, \Exception $exception = null)
     {
-        if (false === $this->enabled) {
-            return;
-        }
-
-        $profile = $this->createProfile();
-
-        if (!$profile) {
-            return;
-        }
-
         foreach ($this->collectors as $collector) {
             $collector->setToken($profile->getToken());
             if ($collector instanceof RuntimeDataCollectorInterface) {
@@ -195,16 +271,25 @@ abstract class AbstractProfiler
             } elseif ($collector instanceof LateDataCollectorInterface) {
                 // we need to clone for sub-requests
                 $profile->addCollector(clone $collector);
+            } elseif ($collector instanceof DeprecatedDataCollectorInterface) {
+                @trigger_error(sprintf("%s implementing %s will is deprecated since version 2.8 and support for it will be removed in 3.0.", get_class($collector), 'Symfony\Component\HttpKernel\DataCollector\DataCollectorInterface'), E_USER_DEPRECATED);
+                /** @var DeprecatedDataCollectorInterface $clone */
+                $clone = clone $collector;
+                if (!($clone instanceof DeprecatedLateDataCollectorInterface)) {
+                    if (null !== $request && null !== $response) {
+                        $clone->collect($request, $response, $exception);
+                        // we need to clone for sub-requests
+                        $profile->addCollector($clone);
+                    }
+                } else {
+                    // we need to clone for sub-requests
+                    $profile->addCollector($clone);
+                }
             }
         }
 
         return $profile;
     }
-
-    /**
-     * @return ProfileInterface
-     */
-    abstract protected function createProfile();
 
     private function getTimestamp($value)
     {
@@ -213,7 +298,7 @@ abstract class AbstractProfiler
         }
 
         try {
-            $value = new \DateTime(is_numeric($value) ? '@'.$value : $value);
+            $value = new \DateTime(is_numeric($value) ? '@' . $value : $value);
         } catch (\Exception $e) {
             return;
         }

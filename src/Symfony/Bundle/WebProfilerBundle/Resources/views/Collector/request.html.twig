@@ -150,7 +150,7 @@
     {% if profile.parent %}
         <h2><a href="{{ path('_profiler', { 'token': profile.parent.token }) }}">Parent request: {{ profile.parent.token }}</a></h2>
 
-        {% include '@WebProfiler/Profiler/bag.html.twig' with { 'bag': profile.parent.getcollector('request').requestattributes } only %}
+        {% include '@WebProfiler/Profiler/bag.html.twig' with { 'bag': profile.parent.get('request').requestattributes } only %}
     {% endif %}
 
     {% if profile.children|length %}
@@ -158,7 +158,7 @@
 
         {% for child in profile.children %}
             <h3><a href="{{ path('_profiler', { 'token': child.token }) }}">{{ child.token }}</a></h3>
-            {% include '@WebProfiler/Profiler/bag.html.twig' with { 'bag': child.getcollector('request').requestattributes } only %}
+            {% include '@WebProfiler/Profiler/bag.html.twig' with { 'bag': child.get('request').requestattributes } only %}
         {% endfor %}
     {% endif %}
 

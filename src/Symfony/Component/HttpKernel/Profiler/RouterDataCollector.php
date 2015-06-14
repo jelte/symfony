@@ -47,6 +47,10 @@ class RouterDataCollector extends AbstractDataCollector implements EventSubscrib
     {
         $request = $this->requestStack->getCurrentRequest();
 
+        if (null === $request) {
+            return;
+        }
+
         if (!isset($this->responses[$request])) {
             return;
         }

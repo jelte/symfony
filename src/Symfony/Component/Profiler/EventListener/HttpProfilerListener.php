@@ -11,14 +11,19 @@
 
 namespace Symfony\Component\Profiler\EventListener;
 
+use Symfony\Component\EventDispatcher\Event;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\DataCollector\DataCollectorInterface;
+use Symfony\Component\HttpKernel\DataCollector\LateDataCollectorInterface;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 use Symfony\Component\HttpKernel\Event\PostResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
-use Symfony\Component\Profiler\HttpProfiler;
+use Symfony\Component\Profiler\HttpProfile;
 use Symfony\Component\HttpFoundation\RequestMatcherInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\Profiler\Profiler;
 
 /**
  * ProfilerListener collects data for the current request by listening to the kernel events.
@@ -26,13 +31,11 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  * @author Fabien Potencier <fabien@symfony.com>
  * @author Jelte Steijaert <jelte@khepri.be>
  */
-class HttpProfilerListener implements EventSubscriberInterface
+class HttpProfilerListener extends AbstractProfilerListener
 {
-    protected $profiler;
     protected $matcher;
     protected $onlyException;
     protected $onlyMasterRequests;
-    protected $exception;
     protected $profiles;
     protected $requestStack;
     protected $parents;
@@ -40,18 +43,18 @@ class HttpProfilerListener implements EventSubscriberInterface
     /**
      * Constructor.
      *
-     * @param HttpProfiler                 $profiler           A Profiler instance
+     * @param Profiler                     $profiler           A Profiler instance
      * @param RequestStack|null            $requestStack       A RequestStack instance. (Required in 3.0)
      * @param RequestMatcherInterface|null $matcher            A RequestMatcher instance
      * @param bool                         $onlyException      true if the profiler only collects data when an exception occurs, false otherwise
      * @param bool                         $onlyMasterRequests true if the profiler only collects data when the request is a master request, false otherwise
      */
-    public function __construct(HttpProfiler $profiler, RequestStack $requestStack, RequestMatcherInterface $matcher = null, $onlyException = false, $onlyMasterRequests = false)
+    public function __construct(Profiler $profiler, RequestStack $requestStack, RequestMatcherInterface $matcher = null, $onlyException = false, $onlyMasterRequests = false)
     {
+        parent::__construct($profiler, $onlyException);
         $this->profiler = $profiler;
         $this->requestStack = $requestStack;
         $this->matcher = $matcher;
-        $this->onlyException = (bool) $onlyException;
         $this->onlyMasterRequests = (bool) $onlyMasterRequests;
         $this->profiles = new \SplObjectStorage();
         $this->parents = new \SplObjectStorage();
@@ -67,8 +70,7 @@ class HttpProfilerListener implements EventSubscriberInterface
         if ($this->onlyMasterRequests && !$event->isMasterRequest()) {
             return;
         }
-
-        $this->exception = $event->getException();
+        $this->onException($event->getException());
     }
 
     /**
@@ -78,25 +80,27 @@ class HttpProfilerListener implements EventSubscriberInterface
      */
     public function onKernelResponse(FilterResponseEvent $event)
     {
-        $master = $event->isMasterRequest();
-        if ($this->onlyMasterRequests && !$master) {
+        if ($this->onlyMasterRequests && !$event->isMasterRequest()) {
             return;
         }
+
+        $exception = $this->exception;
 
         if ($this->onlyException && null === $this->exception) {
             return;
         }
 
-        $request = $event->getRequest();
         $this->exception = null;
 
-        if (null !== $this->matcher && !$this->matcher->matches($request)) {
+        if (null !== $this->matcher && !$this->matcher->matches($event->getRequest())) {
             return;
         }
 
-        $this->profiler->addResponse($request, $event->getResponse());
+        $request = $event->getRequest();
 
-        if (!$profile = $this->profiler->profile()) {
+        $profile = $this->profiler->profileRequest($request, $event->getResponse(), $exception);
+
+        if (null === $profile) {
             return;
         }
 

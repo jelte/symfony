@@ -14,7 +14,8 @@ namespace Symfony\Bundle\WebProfilerBundle\Controller;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Profiler\HttpProfiler;
+use Symfony\Component\Profiler\HttpProfile;
+use Symfony\Component\Profiler\Profiler;
 use Symfony\Component\HttpFoundation\Session\Flash\AutoExpireFlashBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bundle\WebProfilerBundle\Profiler\TemplateManager;
@@ -38,12 +39,12 @@ class ProfilerController
      * Constructor.
      *
      * @param UrlGeneratorInterface $generator       The URL Generator
-     * @param HttpProfiler          $profiler        The profiler
+     * @param Profiler              $profiler        The profiler
      * @param \Twig_Environment     $twig            The twig environment
      * @param array                 $templates       The templates
      * @param string                $toolbarPosition The toolbar position (top, bottom, normal, or null -- use the configuration)
      */
-    public function __construct(UrlGeneratorInterface $generator, HttpProfiler $profiler = null, \Twig_Environment $twig, array $templates, $toolbarPosition = 'normal')
+    public function __construct(UrlGeneratorInterface $generator, Profiler $profiler = null, \Twig_Environment $twig, array $templates, $toolbarPosition = 'normal')
     {
         $this->generator = $generator;
         $this->profiler = $profiler;
@@ -88,12 +89,13 @@ class ProfilerController
 
         $this->profiler->disable();
 
-        $panel = $request->query->get('panel', 'request');
         $page = $request->query->get('page', 'home');
 
         if (!$profile = $this->profiler->load($token)) {
             return new Response($this->twig->render('@WebProfiler/Profiler/info.html.twig', array('about' => 'no_token', 'token' => $token)), 200, array('Content-Type' => 'text/html'));
         }
+
+        $panel = $request->query->get('panel', $profile instanceof HttpProfile?'request':'config');
 
         if (!$profile->has($panel)) {
             throw new NotFoundHttpException(sprintf('Panel "%s" is not available for token "%s".', $panel, $token));

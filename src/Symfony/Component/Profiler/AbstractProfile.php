@@ -176,6 +176,18 @@ abstract class AbstractProfile implements ProfileInterface
         }
     }
 
+    /**
+     * @param $name
+     *
+     * @return DataCollectorInterface
+     *
+     * @deprecated since 2.8. Will be removed in 3.0.
+     */
+    public function getCollector($name)
+    {
+        return $this->get($name);
+    }
+
     public function removeCollector($name)
     {
         unset($this->collectors[$name]);

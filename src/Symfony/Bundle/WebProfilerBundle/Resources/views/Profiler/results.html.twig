@@ -19,13 +19,29 @@
                 {% for elements in tokens %}
                     <tr>
                         <td><a href="{{ path('_profiler', { 'token': elements.token }) }}">{{ elements.token }}</a></td>
-                        <td>{{ elements.ip }}</td>
-                        <td>{{ elements.method }}</td>
-                        <td>{{ elements.url }}</td>
+                        <td>
+                            {% if elements.ip is defined %}
+                                {{ elements.ip }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if elements.method is defined %}
+                                {{ elements.method }}
+                            {% elseif elements.command is defined %}
+                                {{ elements.command }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if elements.url is defined %}
+                                {{ elements.url }}
+                            {% endif %}
+                        </td>
                         <td>{{ elements.time|date('r') }}</td>
                         <td>
                         {% if elements.status_code is defined and elements.status_code %}
                             {{ elements.status_code }}
+                        {% elseif elements.exit_code is defined and elements.exit_code %}
+                            {{ elements.exit_code }}
                         {% else %}
                             unknown
                         {% endif %}

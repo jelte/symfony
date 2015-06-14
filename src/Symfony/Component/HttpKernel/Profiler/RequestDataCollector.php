@@ -45,6 +45,10 @@ class RequestDataCollector extends AbstractDataCollector implements EventSubscri
     {
         $request = $this->requestStack->getCurrentRequest();
 
+        if (null === $request) {
+            return;
+        }
+
         if (!isset($this->responses[$request])) {
             return;
         }

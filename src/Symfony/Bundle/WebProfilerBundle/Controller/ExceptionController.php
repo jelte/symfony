@@ -11,7 +11,7 @@
 
 namespace Symfony\Bundle\WebProfilerBundle\Controller;
 
-use Symfony\Component\Profiler\HttpProfiler;
+use Symfony\Component\Profiler\Profiler;
 use Symfony\Component\Debug\ExceptionHandler;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\Response;
@@ -27,7 +27,7 @@ class ExceptionController
     protected $debug;
     protected $profiler;
 
-    public function __construct(HttpProfiler $profiler = null, \Twig_Environment $twig, $debug)
+    public function __construct(Profiler $profiler = null, \Twig_Environment $twig, $debug)
     {
         $this->profiler = $profiler;
         $this->twig = $twig;
