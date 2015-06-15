@@ -217,6 +217,9 @@ class ProfilerTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($profile->has('memory'));
         $this->assertTrue($this->profiler->save($profile));
         $this->assertInstanceof('Symfony\Component\Profiler\HttpProfile', $this->profiler->loadFromResponse($response));
+
+        $this->assertCount(0, $this->profiler->find('', '', 10, '', '7th April 2014', '9th April 2014'));
+        $this->assertCount(0, $this->profiler->find('127.0.0.1', 'http://foo.bar/', 10, 'GET', '7th April 2014', '9th April 2014'));
     }
 
     protected function setUp()

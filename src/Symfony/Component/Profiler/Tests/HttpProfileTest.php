@@ -28,4 +28,13 @@ class HttpProfileTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse($profile->has('memory'));
         $profile->get('memory');
     }
+
+    public function testNestable()
+    {
+        $profile = new HttpProfile('test', '127.0.0.1', '/', 'GET', 200);
+        $childProfile = new HttpProfile('test', '127.0.0.1', '/', 'GET', 200);
+
+        $profile->setChildren(array($childProfile));
+        $this->assertEquals($profile, $childProfile->getParent());
+    }
 }
