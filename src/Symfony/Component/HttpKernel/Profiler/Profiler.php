@@ -11,67 +11,26 @@
 
 namespace Symfony\Component\HttpKernel\Profiler;
 
+@trigger_error('The '.__NAMESPACE__.'\Profiler class is deprecated since Symfony 3.0 and will be removed in 3.1. Use Symfony\Component\Profiler\Profiler instead.', E_USER_DEPRECATED);
+
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\DataCollector\DataCollectorInterface;
 use Symfony\Component\HttpKernel\DataCollector\LateDataCollectorInterface;
-use Psr\Log\LoggerInterface;
+use Symfony\Component\Profiler\DataCollector\LateDataCollectorInterface as BaseLateDataCollectorInterface;
+use Symfony\Component\Profiler\ProfileData\GenericProfileData;
+use Symfony\Component\Profiler\Profiler as BaseProfiler;
 
 /**
  * Profiler.
  *
  * @author Fabien Potencier <fabien@symfony.com>
+ *
+ * @deprecated Deprecated since Symfony 3.0, to be removed in Symfony 3.1.
+ *             Use {@link Symfony\Component\Profiler\Profiler} instead.
  */
-class Profiler
+class Profiler extends BaseProfiler
 {
-    /**
-     * @var ProfilerStorageInterface
-     */
-    private $storage;
-
-    /**
-     * @var DataCollectorInterface[]
-     */
-    private $collectors = array();
-
-    /**
-     * @var LoggerInterface
-     */
-    private $logger;
-
-    /**
-     * @var bool
-     */
-    private $enabled = true;
-
-    /**
-     * Constructor.
-     *
-     * @param ProfilerStorageInterface $storage A ProfilerStorageInterface instance
-     * @param LoggerInterface          $logger  A LoggerInterface instance
-     */
-    public function __construct(ProfilerStorageInterface $storage, LoggerInterface $logger = null)
-    {
-        $this->storage = $storage;
-        $this->logger = $logger;
-    }
-
-    /**
-     * Disables the profiler.
-     */
-    public function disable()
-    {
-        $this->enabled = false;
-    }
-
-    /**
-     * Enables the profiler.
-     */
-    public function enable()
-    {
-        $this->enabled = true;
-    }
-
     /**
      * Loads the Profile for the given Response.
      *
@@ -109,14 +68,20 @@ class Profiler
      */
     public function saveProfile(Profile $profile)
     {
-        // late collect
-        foreach ($profile->getCollectors() as $collector) {
+        foreach ($this->collectors as $collector) {
             if ($collector instanceof LateDataCollectorInterface) {
                 $collector->lateCollect();
             }
+            if ($collector instanceof BaseLateDataCollectorInterface) {
+                if ( !method_exists($collector, 'getCollectedData') ) {
+                    $profile->add(new GenericProfileData($collector));
+                } else {
+                    $profile->add($collector->getCollectedData());
+                }
+            }
         }
 
-        if (!($ret = $this->storage->write($profile)) && null !== $this->logger) {
+        if (!($ret = $this->storage->write($profile, $profile->getIndexes())) && null !== $this->logger) {
             $this->logger->warning('Unable to store the profiler information.', array('configured_storage' => get_class($this->storage)));
         }
 
@@ -124,11 +89,43 @@ class Profiler
     }
 
     /**
-     * Purges all data from the storage.
+     * Collects data for the given Response.
+     *
+     * @param Request $request A Request instance
+     * @param Response $response A Response instance
+     * @param \Exception $exception An exception instance if the request threw one
+     *
+     * @return Profile|null A Profile instance or null if the profiler is disabled
      */
-    public function purge()
+    public function collect(Request $request, Response $response, \Exception $exception = null)
     {
-        $this->storage->purge();
+        if (!$this->enabled) {
+            return;
+        }
+
+        $profile = new Profile(substr(hash('sha256', uniqid(mt_rand(), true)), 0, 6));
+        $profile->setTime(time());
+        $profile->setUrl($request->getUri());
+        $profile->setIp($request->getClientIp());
+        $profile->setMethod($request->getMethod());
+        $profile->setStatusCode($response->getStatusCode());
+
+        $response->headers->set('X-Debug-Token', $profile->getToken());
+
+        foreach ($this->collectors as $collector) {
+            if ( $collector instanceof DataCollectorInterface ) {
+                $collector->collect($request, $response, $exception);
+            }
+            if (!($collector instanceof \Symfony\Component\Profiler\DataCollector\LateDataCollectorInterface)) {
+                if ( !method_exists($collector, 'getCollectedData') ) {
+                    $profile->add(new GenericProfileData($collector));
+                } else {
+                    $profile->add($collector->getCollectedData());
+                }
+            }
+        }
+
+        return $profile;
     }
 
     /**
@@ -151,100 +148,11 @@ class Profiler
     }
 
     /**
-     * Collects data for the given Response.
-     *
-     * @param Request    $request   A Request instance
-     * @param Response   $response  A Response instance
-     * @param \Exception $exception An exception instance if the request threw one
-     *
-     * @return Profile|null A Profile instance or null if the profiler is disabled
+     * Purges all data from the storage.
      */
-    public function collect(Request $request, Response $response, \Exception $exception = null)
+    public function purge()
     {
-        if (false === $this->enabled) {
-            return;
-        }
-
-        $profile = new Profile(substr(hash('sha256', uniqid(mt_rand(), true)), 0, 6));
-        $profile->setTime(time());
-        $profile->setUrl($request->getUri());
-        $profile->setIp($request->getClientIp());
-        $profile->setMethod($request->getMethod());
-        $profile->setStatusCode($response->getStatusCode());
-
-        $response->headers->set('X-Debug-Token', $profile->getToken());
-
-        foreach ($this->collectors as $collector) {
-            $collector->collect($request, $response, $exception);
-
-            // we need to clone for sub-requests
-            $profile->addCollector(clone $collector);
-        }
-
-        return $profile;
-    }
-
-    /**
-     * Gets the Collectors associated with this profiler.
-     *
-     * @return array An array of collectors
-     */
-    public function all()
-    {
-        return $this->collectors;
-    }
-
-    /**
-     * Sets the Collectors associated with this profiler.
-     *
-     * @param DataCollectorInterface[] $collectors An array of collectors
-     */
-    public function set(array $collectors = array())
-    {
-        $this->collectors = array();
-        foreach ($collectors as $collector) {
-            $this->add($collector);
-        }
-    }
-
-    /**
-     * Adds a Collector.
-     *
-     * @param DataCollectorInterface $collector A DataCollectorInterface instance
-     */
-    public function add(DataCollectorInterface $collector)
-    {
-        $this->collectors[$collector->getName()] = $collector;
-    }
-
-    /**
-     * Returns true if a Collector for the given name exists.
-     *
-     * @param string $name A collector name
-     *
-     * @return bool
-     */
-    public function has($name)
-    {
-        return isset($this->collectors[$name]);
-    }
-
-    /**
-     * Gets a Collector by name.
-     *
-     * @param string $name A collector name
-     *
-     * @return DataCollectorInterface A DataCollectorInterface instance
-     *
-     * @throws \InvalidArgumentException if the collector does not exist
-     */
-    public function get($name)
-    {
-        if (!isset($this->collectors[$name])) {
-            throw new \InvalidArgumentException(sprintf('Collector "%s" does not exist.', $name));
-        }
-
-        return $this->collectors[$name];
+        $this->storage->purge();
     }
 
     private function getTimestamp($value)

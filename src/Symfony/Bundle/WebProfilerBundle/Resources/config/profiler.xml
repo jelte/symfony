@@ -8,6 +8,7 @@
         <service id="web_profiler.controller.profiler" class="Symfony\Bundle\WebProfilerBundle\Controller\ProfilerController">
             <argument type="service" id="router" on-invalid="null" />
             <argument type="service" id="profiler" on-invalid="null" />
+            <argument type="service" id="profiler.storage" on-invalid="null" />
             <argument type="service" id="twig" />
             <argument>%data_collector.templates%</argument>
             <argument>%web_profiler.debug_toolbar.position%</argument>
@@ -15,12 +16,14 @@
 
         <service id="web_profiler.controller.router" class="Symfony\Bundle\WebProfilerBundle\Controller\RouterController">
             <argument type="service" id="profiler" on-invalid="null" />
+            <argument type="service" id="profiler.storage" on-invalid="null" />
             <argument type="service" id="twig" />
             <argument type="service" id="router" on-invalid="null" />
         </service>
 
         <service id="web_profiler.controller.exception" class="Symfony\Bundle\WebProfilerBundle\Controller\ExceptionController">
             <argument type="service" id="profiler" on-invalid="null" />
+            <argument type="service" id="profiler.storage" on-invalid="null" />
             <argument type="service" id="twig" />
             <argument>%kernel.debug%</argument>
         </service>

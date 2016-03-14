@@ -23,11 +23,13 @@
         "symfony/expression-language": "~2.8|~3.0",
         "symfony/config": "~2.8|~3.0",
         "symfony/stopwatch": "~2.8|~3.0",
+        "symfony/profiler": "~3.0",
         "psr/log": "~1.0"
     },
     "suggest": {
         "symfony/dependency-injection": "",
-        "symfony/http-kernel": ""
+        "symfony/http-kernel": "",
+        "symfony/profiler": ""
     },
     "autoload": {
         "psr-4": { "Symfony\\Component\\EventDispatcher\\": "" },

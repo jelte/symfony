@@ -11,19 +11,24 @@
 
 namespace Symfony\Component\HttpKernel\EventListener;
 
-use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
-use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
-use Symfony\Component\HttpKernel\Event\PostResponseEvent;
-use Symfony\Component\HttpKernel\KernelEvents;
-use Symfony\Component\HttpKernel\Profiler\Profiler;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\RequestMatcherInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\HttpKernel\DataCollector\LateDataCollectorInterface;
+use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
+use Symfony\Component\HttpKernel\Event\GetResponseEvent;
+use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
+use Symfony\Component\HttpKernel\Event\PostResponseEvent;
+use Symfony\Component\HttpKernel\KernelEvents;
+use Symfony\Component\Profiler\ProfileData\GenericProfileData;
+use Symfony\Component\Profiler\Profiler;
 
 /**
  * ProfilerListener collects data for the current request by listening to the kernel events.
  *
  * @author Fabien Potencier <fabien@symfony.com>
+ * @author Jelte Steijaert <jelte@khepri.be>
+ *
  */
 class ProfilerListener implements EventSubscriberInterface
 {
@@ -45,7 +50,7 @@ class ProfilerListener implements EventSubscriberInterface
      * @param bool                         $onlyException      true if the profiler only collects data when an exception occurs, false otherwise
      * @param bool                         $onlyMasterRequests true if the profiler only collects data when the request is a master request, false otherwise
      */
-    public function __construct(Profiler $profiler, RequestStack $requestStack, RequestMatcherInterface $matcher = null, $onlyException = false, $onlyMasterRequests = false)
+    public function __construct(Profiler $profiler, $requestStack = null, $matcher = null, $onlyException = false, $onlyMasterRequests = false)
     {
         $this->profiler = $profiler;
         $this->matcher = $matcher;
@@ -66,7 +71,6 @@ class ProfilerListener implements EventSubscriberInterface
         if ($this->onlyMasterRequests && !$event->isMasterRequest()) {
             return;
         }
-
         $this->exception = $event->getException();
     }
 
@@ -94,9 +98,23 @@ class ProfilerListener implements EventSubscriberInterface
             return;
         }
 
-        if (!$profile = $this->profiler->collect($request, $event->getResponse(), $exception)) {
-            return;
+        if (method_exists($this->profiler, 'collect')) {
+            if (!$profile = $this->profiler->collect($request, $event->getResponse(), $exception)) {
+                return;
+            }
+        } else {
+            if (!$profile = $this->profiler->profile()) {
+                return;
+            }
+            foreach ($this->profiler->getDeprecatedDataCollectors() as $deprecatedDataCollector) {
+                if ( !($deprecatedDataCollector instanceof LateDataCollectorInterface) ) {
+                    $deprecatedDataCollector->collect($request, $event->getResponse(), $exception);
+                    $profile->add(new GenericProfileData($deprecatedDataCollector));
+                }
+            }
         }
+
+        $event->getResponse()->headers->set('X-Debug-Token', $profile->getToken());
 
         $this->profiles[$request] = $profile;
 
@@ -117,7 +135,19 @@ class ProfilerListener implements EventSubscriberInterface
 
         // save profiles
         foreach ($this->profiles as $request) {
-            $this->profiler->saveProfile($this->profiles[$request]);
+            foreach ($this->profiler->getDeprecatedDataCollectors() as $deprecatedDataCollector) {
+                if ($deprecatedDataCollector instanceof LateDataCollectorInterface) {
+                    $deprecatedDataCollector->lateCollect();
+                    $this->profiles[$request]->add(new GenericProfileData($deprecatedDataCollector));
+                }
+            }
+            $this->profiler->save($this->profiles[$request], array(
+                'url' => $event->getRequest()->getUri(),
+                'method' => $event->getRequest()->getMethod(),
+                'ip' => $event->getRequest()->getClientIp(),
+                'status_code' => $event->getResponse()->getStatusCode(),
+                'profile_type' => 'http',
+            ));
         }
 
         $this->profiles = new \SplObjectStorage();

@@ -34,6 +34,7 @@
     "require-dev": {
         "symfony/finder": "~2.8|~3.0",
         "symfony/polyfill-intl-icu": "~1.0",
+        "symfony/profiler": "~3.0",
         "symfony/routing": "~2.8|~3.0",
         "symfony/validator": "~2.8|~3.0",
         "symfony/expression-language": "~2.8|~3.0",
